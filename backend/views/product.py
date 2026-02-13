@@ -6,6 +6,29 @@ product_bp = Blueprint('product', __name__, url_prefix='/products')
 
 @product_bp.route('/', methods=['GET'])
 def get_products():
+    """
+    Get all products
+    ---
+    tags:
+      - Products
+    parameters:
+      - name: search
+        in: query
+        type: string
+        description: Search term for products
+      - name: category
+        in: query
+        type: string
+        description: Filter by category name
+      - name: sort
+        in: query
+        type: string
+        enum: [price-low, price-high, rating, newest, name]
+        description: Sort criteria
+    responses:
+      200:
+        description: List of products
+    """
     search = request.args.get("search", "", type=str).lower()
     category_name = request.args.get("category", "all", type=str).lower()
     sort = request.args.get("sort", "newest", type=str).lower() 
@@ -39,6 +62,44 @@ def get_products():
 @product_bp.route('/', methods=['POST'])
 @jwt_required()
 def add_product():
+    """
+    Add a new product (Admin/Manager only)
+    ---
+    tags:
+      - Products
+    security:
+      - Bearer: []
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          id: ProductAdd
+          required:
+            - name
+            - price
+            - category_id
+          properties:
+            name:
+              type: string
+            price:
+              type: number
+            category_id:
+              type: integer
+            image:
+              type: string
+            description:
+              type: string
+            in_stock:
+              type: boolean
+    responses:
+      201:
+        description: Product created successfully
+      400:
+        description: Missing required fields
+      403:
+        description: Permission denied
+    """
     user = get_jwt_identity()
     if user['role'] != 'admin' and user['role'] != 'manager':
         return jsonify({"error": "Permission denied"}), 403
@@ -69,6 +130,15 @@ def add_product():
 
 @product_bp.route('/categories', methods=['GET'])
 def get_categories():
+    """
+    Get all categories
+    ---
+    tags:
+      - Products
+    responses:
+      200:
+        description: List of categories
+    """
     categories = Category.query.all()
     return jsonify([
         {
@@ -84,6 +154,44 @@ def get_categories():
 @product_bp.route('/<int:id>', methods=['PUT'])
 @jwt_required()
 def update_product(id):
+    """
+    Update a product (Admin/Manager only)
+    ---
+    tags:
+      - Products
+    security:
+      - Bearer: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: integer
+      - name: body
+        in: body
+        required: true
+        schema:
+          id: ProductUpdate
+          properties:
+            name:
+              type: string
+            price:
+              type: number
+            category_id:
+              type: integer
+            image:
+              type: string
+            description:
+              type: string
+            in_stock:
+              type: boolean
+    responses:
+      200:
+        description: Product updated successfully
+      403:
+        description: Permission denied
+      404:
+        description: Product not found
+    """
     identity = get_jwt_identity()
 
     if identity['role'] not in ['admin', 'manager']:
@@ -103,6 +211,26 @@ def update_product(id):
 @product_bp.route('/<int:id>', methods=['DELETE'])
 @jwt_required()
 def delete_product(id):
+    """
+    Delete a product (Admin/Manager only)
+    ---
+    tags:
+      - Products
+    security:
+      - Bearer: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: integer
+    responses:
+      200:
+        description: Product deleted successfully
+      403:
+        description: Permission denied
+      404:
+        description: Product not found
+    """
     try:
         identity = get_jwt_identity()
         print("JWT Identity:", identity, "| Type:", type(identity))
