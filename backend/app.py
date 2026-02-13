@@ -2,6 +2,7 @@ from flask import Flask, jsonify
 from flask_migrate import Migrate
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
+from flasgger import Swagger
 from models import db, TokenBlocklist
 from views import auth_bp, user_bp, product_bp, order_bp, category_bp, cart_bp
 from views.mailserver import email
@@ -26,10 +27,16 @@ def create_app():
     app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(days=1)
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 
+    app.config['SWAGGER'] = {
+        'title': 'The Shop API',
+        'uiversion': 3
+    }
+
     db.init_app(app)
     migrate.init_app(app, db)
     jwt.init_app(app)
     CORS(app, credentials=True)
+    Swagger(app)
 
     # Initialize Mail
     email(app)
