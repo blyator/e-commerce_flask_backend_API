@@ -14,6 +14,19 @@ user_bp = Blueprint('user', __name__, url_prefix='/users')
 @user_bp.route('', methods=['GET'])
 @jwt_required()
 def get_all_users():
+    """
+    Get all users (Admin only)
+    ---
+    tags:
+      - Users
+    security:
+      - Bearer: []
+    responses:
+      200:
+        description: List of all users
+      403:
+        description: Admin only
+    """
     identity = get_jwt_identity()
     if identity['role'] != 'admin':
         return jsonify({"error": "Admin only"}), 403
@@ -24,6 +37,26 @@ def get_all_users():
 @user_bp.route('/<int:id>/block', methods=['PATCH'])
 @jwt_required()
 def toggle_block_user(id):
+    """
+    Toggle user block status (Admin only)
+    ---
+    tags:
+      - Users
+    security:
+      - Bearer: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: integer
+    responses:
+      200:
+        description: User status toggled
+      403:
+        description: Admin only
+      404:
+        description: User not found
+    """
     identity = get_jwt_identity()
     if identity['role'] != 'admin':
         return jsonify({"error": "Admin only"}), 403
@@ -42,6 +75,26 @@ def toggle_block_user(id):
 @user_bp.route('/<int:id>', methods=['DELETE'])
 @jwt_required()
 def delete_user(id):
+    """
+    Delete a user (Admin only)
+    ---
+    tags:
+      - Users
+    security:
+      - Bearer: []
+    parameters:
+      - name: id
+        in: path
+        required: true
+        type: integer
+    responses:
+      200:
+        description: User deleted
+      403:
+        description: Admin only
+      404:
+        description: User not found
+    """
     identity = get_jwt_identity()
     if identity['role'] != 'admin':
         return jsonify({"error": "Admin only"}), 403
@@ -59,6 +112,32 @@ def delete_user(id):
 @user_bp.route('/create-manager', methods=['POST'])
 @jwt_required()
 def create_manager():
+    """
+    Create a new manager or promote user to manager (Admin only)
+    ---
+    tags:
+      - Users
+    security:
+      - Bearer: []
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          required:
+            - email
+          properties:
+            email:
+              type: string
+    responses:
+      201:
+        description: Manager created
+      200:
+        description: User promoted to manager
+      403:
+        description: Admin only
+    """
     identity = get_jwt_identity()
     if identity['role'] != 'admin':
         return jsonify({"error": "Admin only"}), 403
@@ -111,6 +190,19 @@ def create_manager():
 @user_bp.route('/delete', methods=['DELETE'])
 @jwt_required()
 def delete_account():
+    """
+    Delete current user account
+    ---
+    tags:
+      - Users
+    security:
+      - Bearer: []
+    responses:
+      200:
+        description: Account deleted
+      404:
+        description: User not found
+    """
     identity = get_jwt_identity()
     user_id = identity.get("id")
 
@@ -138,6 +230,33 @@ def delete_account():
 @user_bp.route("/change-password", methods=["PATCH"])
 @jwt_required()
 def change_password():
+    """
+    Change current user password
+    ---
+    tags:
+      - Users
+    security:
+      - Bearer: []
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          required:
+            - current_password
+            - new_password
+          properties:
+            current_password:
+              type: string
+            new_password:
+              type: string
+    responses:
+      200:
+        description: Password updated
+      400:
+        description: Invalid current password
+    """
     identity = get_jwt_identity()
     user_id = identity.get("id")
 
