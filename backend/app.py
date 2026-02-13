@@ -27,7 +27,23 @@ def create_app():
 
     app.config['SWAGGER'] = {
         'title': 'The Shop API',
-        'uiversion': 3
+        'uiversion': 3,
+        'specs_route': '/apidocs/',
+        'ui_params': {
+            'apisSorter': 'alpha',
+            'operationsSorter': 'alpha',
+            'tagsSorter': 'alpha',
+            'docExpansion': 'list',
+            'defaultModelsExpandDepth': -1,
+        },
+        'tags': [
+            {'name': 'Authentication', 'description': 'Login, Logout, and Registration',},
+            {'name': 'Products', 'description': 'Product catalog management'},
+            {'name': 'Categories', 'description': 'Product categories'},
+            {'name': 'Cart', 'description': 'User shopping cart'},
+            {'name': 'Orders', 'description': 'Order processing and history'},
+            {'name': 'Users', 'description': 'User account and management'}
+        ]
     }
 
     db.init_app(app)
