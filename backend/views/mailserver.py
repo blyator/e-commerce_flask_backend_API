@@ -156,8 +156,7 @@ def send_order_confirmation_email(name, email, order):
 
     html_items = ''.join(f"<li>{item['quantity']} x {item['name']} - Ksh {item['price']:.2f} each = Ksh {(item['price'] * item['quantity']):.2f}</li>" for item in order['items'])          
     
-    newline = '
-'  
+    newline = '\n'
     text_items = ''.join(f"- {item['quantity']} x {item['name']} - Ksh {item['price']:.2f} each = Ksh {(item['price'] * item['quantity']):.2f}{newline}" for item in order['items'])      
 
 
