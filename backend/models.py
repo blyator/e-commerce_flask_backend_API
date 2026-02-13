@@ -1,10 +1,12 @@
 from flask_sqlalchemy import SQLAlchemy
+from flask_jwt_extended import JWTManager
 from datetime import datetime
 from sqlalchemy import MetaData, Text
 from sqlalchemy.dialects.postgresql import JSON
 
 metadata = MetaData()
 db = SQLAlchemy(metadata=metadata)
+jwt = JWTManager()
 
 ROLE_CHOICES = ("admin", "order_manager", "customer")
 ORDER_STATUS_CHOICES = ("Pending", "Processing", "Shipped", "Delivered")
