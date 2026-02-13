@@ -9,6 +9,17 @@ from sqlalchemy.orm import joinedload
 @cart_bp.route('', methods=['GET'])
 @jwt_required()
 def view_cart():
+    """
+    View current user cart
+    ---
+    tags:
+      - Cart
+    security:
+      - Bearer: []
+    responses:
+      200:
+        description: List of cart items
+    """
     try:
 
         user_identity = get_jwt_identity()
@@ -38,6 +49,35 @@ def view_cart():
 @cart_bp.route('', methods=['POST'])
 @jwt_required()
 def add_to_cart():
+    """
+    Add product to cart
+    ---
+    tags:
+      - Cart
+    security:
+      - Bearer: []
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          required:
+            - product_id
+            - quantity
+          properties:
+            product_id:
+              type: integer
+            quantity:
+              type: integer
+    responses:
+      201:
+        description: Item added to cart
+      200:
+        description: Item quantity updated
+      400:
+        description: Invalid input
+    """
     try:
 
         user_identity = get_jwt_identity()
@@ -90,6 +130,24 @@ def add_to_cart():
 @cart_bp.route('/<int:item_id>', methods=['DELETE'])
 @jwt_required()
 def remove_from_cart(item_id):
+    """
+    Remove item from cart
+    ---
+    tags:
+      - Cart
+    security:
+      - Bearer: []
+    parameters:
+      - name: item_id
+        in: path
+        required: true
+        type: integer
+    responses:
+      200:
+        description: Item removed
+      404:
+        description: Item not found
+    """
     try:
         user_identity = get_jwt_identity()
         if isinstance(user_identity, dict):
@@ -117,7 +175,36 @@ def remove_from_cart(item_id):
 @cart_bp.route('/<int:item_id>', methods=['PUT'])
 @jwt_required()
 def update_cart_item(item_id):
-
+    """
+    Update cart item quantity
+    ---
+    tags:
+      - Cart
+    security:
+      - Bearer: []
+    parameters:
+      - name: item_id
+        in: path
+        required: true
+        type: integer
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          required:
+            - quantity
+          properties:
+            quantity:
+              type: integer
+    responses:
+      200:
+        description: Item updated
+      400:
+        description: Invalid quantity
+      404:
+        description: Item not found
+    """
     try:
         user_identity = get_jwt_identity()
         if isinstance(user_identity, dict):
@@ -156,7 +243,17 @@ def update_cart_item(item_id):
 @cart_bp.route('/clear', methods=['DELETE'])
 @jwt_required()
 def clear_cart():
-
+    """
+    Clear all items from cart
+    ---
+    tags:
+      - Cart
+    security:
+      - Bearer: []
+    responses:
+      200:
+        description: Cart cleared
+    """
     try:
         user_identity = get_jwt_identity()
         if isinstance(user_identity, dict):
