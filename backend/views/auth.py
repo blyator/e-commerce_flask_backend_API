@@ -10,15 +10,10 @@ from flask_jwt_extended import (
 )
 from datetime import datetime, timezone
 from functools import wraps
-from models import db, User, TokenBlocklist
+from models import db, User, TokenBlocklist, jwt
 from views.mailserver import send_email
 
 auth_bp = Blueprint('auth', __name__)
-jwt = JWTManager()
-
-# Initialize JWT with app
-def init_jwt(app):
-    jwt.init_app(app)
 
 def roles_required(*roles):
     def wrapper(fn):
@@ -47,6 +42,39 @@ def revoked_token_response(jwt_header, jwt_payload):
 
 @auth_bp.route('/register', methods=['POST'])
 def register():
+    """
+    Register a new user
+    ---
+    tags:
+      - Authentication
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          id: UserRegistration
+          required:
+            - email
+            - password
+            - username
+          properties:
+            username:
+              type: string
+            email:
+              type: string
+            password:
+              type: string
+            role:
+              type: string
+              default: customer
+    responses:
+      201:
+        description: User created successfully
+      400:
+        description: Invalid input
+      409:
+        description: Email already exists
+    """
     data = request.get_json()
 
     if not data or not data.get('email') or not data.get('password'):
@@ -89,6 +117,35 @@ def register():
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
+    """
+    Login user
+    ---
+    tags:
+      - Authentication
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          id: UserLogin
+          required:
+            - email
+            - password
+          properties:
+            email:
+              type: string
+            password:
+              type: string
+    responses:
+      200:
+        description: Login successful
+      401:
+        description: Invalid password
+      403:
+        description: Account suspended
+      404:
+        description: User not found
+    """
     try:
         data = request.get_json()
         email = data.get('email')
@@ -126,12 +183,24 @@ def login():
         }), 200
         
     except Exception as e:
-        print(f"Login error: {e}")
-        return jsonify({"error": "Internal server error"}), 500
+        return jsonify({"error": str(e)}), 500
 
 @auth_bp.route('/logout', methods=['DELETE'])
 @jwt_required()
 def logout():
+    """
+    Logout user (Revoke token)
+    ---
+    tags:
+      - Authentication
+    security:
+      - Bearer: []
+    responses:
+      200:
+        description: Successfully logged out
+      500:
+        description: Internal server error
+    """
     try:
         jti = get_jwt()['jti']
         now = datetime.now(timezone.utc)
