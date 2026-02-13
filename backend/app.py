@@ -1,9 +1,8 @@
 from flask import Flask, jsonify
 from flask_migrate import Migrate
 from flask_cors import CORS
-from flask_jwt_extended import JWTManager
 from flasgger import Swagger
-from models import db, TokenBlocklist
+from models import db, TokenBlocklist, jwt
 from views import auth_bp, user_bp, product_bp, order_bp, category_bp, cart_bp
 from views.mailserver import email
 from dotenv import load_dotenv
@@ -11,7 +10,6 @@ import os
 from datetime import timedelta
 
 
-jwt = JWTManager()
 migrate = Migrate()
 
 def create_app():
