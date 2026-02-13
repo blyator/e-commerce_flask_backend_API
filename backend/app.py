@@ -54,7 +54,7 @@ app.register_blueprint(cart_bp)
 
 @app.route('/')
 def index():
-    return {'message': 'Welcome to The Beauty Shop API'}, 200
+    return {'message': 'Welcome to The shop API'}, 200
 
 if __name__ == '__main__':
     app.run(debug=True)
