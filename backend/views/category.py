@@ -6,13 +6,47 @@ category_bp = Blueprint('category', __name__, url_prefix='/categories')
 
 @category_bp.route('/', methods=['GET'])
 def list_categories():
-
+    """
+    List all categories with products
+    ---
+    tags:
+      - Categories
+    responses:
+      200:
+        description: List of categories
+    """
     categories = Category.query.all()
     return jsonify([category.to_dict() for category in categories]), 200
 
 @category_bp.route('/', methods=['POST'])
 @jwt_required()
 def add_category():
+    """
+    Add a new category (Admin only)
+    ---
+    tags:
+      - Categories
+    security:
+      - Bearer: []
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          required:
+            - name
+          properties:
+            name:
+              type: string
+    responses:
+      201:
+        description: Category created
+      403:
+        description: Admin only
+      409:
+        description: Category exists
+    """
     if get_jwt_identity()['role'] != 'admin':
         return jsonify({"error": "Permission denied"}), 403
 
