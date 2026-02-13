@@ -31,6 +31,24 @@ def get_current_user_id():
 @order_bp.route('/all', methods=['GET'])
 @jwt_required()
 def get_all_orders():
+    """
+    Get all orders (Admin/Manager only or current user)
+    ---
+    tags:
+      - Orders
+    security:
+      - Bearer: []
+    parameters:
+      - name: status
+        in: query
+        type: string
+        description: Filter by order status
+    responses:
+      200:
+        description: List of orders
+      401:
+        description: Unauthenticated
+    """
     try:
         user_id = get_current_user_id()
         if user_id is None:
@@ -64,6 +82,22 @@ def get_all_orders():
 @order_bp.route('/', methods=['GET'])
 @jwt_required()
 def get_user_orders():
+    """
+    Get current user's orders
+    ---
+    tags:
+      - Orders
+    security:
+      - Bearer: []
+    parameters:
+      - name: status
+        in: query
+        type: string
+        description: Filter by status
+    responses:
+      200:
+        description: List of user orders
+    """
     try:
         user_id = get_current_user_id()
         if user_id is None:
@@ -117,6 +151,24 @@ def get_user_orders():
 @order_bp.route('/<int:order_id>', methods=['GET'])
 @jwt_required()
 def get_order_details(order_id):
+    """
+    Get order details
+    ---
+    tags:
+      - Orders
+    security:
+      - Bearer: []
+    parameters:
+      - name: order_id
+        in: path
+        required: true
+        type: integer
+    responses:
+      200:
+        description: Order details
+      404:
+        description: Order not found
+    """
     try:
         user_id = get_current_user_id()
         if user_id is None:
@@ -162,6 +214,41 @@ def get_order_details(order_id):
 @order_bp.route('/checkout', methods=['POST'])
 @jwt_required()
 def checkout():
+    """
+    Checkout and place an order
+    ---
+    tags:
+      - Orders
+    security:
+      - Bearer: []
+    parameters:
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          required:
+            - shipping_info
+          properties:
+            shipping_info:
+              type: object
+              properties:
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                email:
+                  type: string
+                city:
+                  type: string
+                shipping:
+                  type: number
+    responses:
+      201:
+        description: Order placed successfully
+      400:
+        description: Cart is empty or invalid data
+    """
     try:
         user_id = get_current_user_id()
         if user_id is None:
@@ -269,6 +356,24 @@ def checkout():
 @order_bp.route('/<int:order_id>/invoice', methods=['GET'])
 @jwt_required()
 def get_order_invoice(order_id):
+    """
+    Get order invoice details
+    ---
+    tags:
+      - Orders
+    security:
+      - Bearer: []
+    parameters:
+      - name: order_id
+        in: path
+        required: true
+        type: integer
+    responses:
+      200:
+        description: Invoice details
+      404:
+        description: Invoice or order not found
+    """
     try:
         user_id = get_current_user_id()
         if user_id is None:
@@ -324,6 +429,35 @@ def get_order_invoice(order_id):
 @order_bp.route('/<int:order_id>/status', methods=['PUT', 'PATCH'])
 @jwt_required()
 def update_order_status(order_id):
+    """
+    Update order status (Admin only)
+    ---
+    tags:
+      - Orders
+    security:
+      - Bearer: []
+    parameters:
+      - name: order_id
+        in: path
+        required: true
+        type: integer
+      - name: body
+        in: body
+        required: true
+        schema:
+          type: object
+          required:
+            - status
+          properties:
+            status:
+              type: string
+              enum: [pending, processing, shipped, delivered, cancelled]
+    responses:
+      200:
+        description: Status updated
+      403:
+        description: Admin only
+    """
     try:
         user_id = get_current_user_id()
         if user_id is None:
