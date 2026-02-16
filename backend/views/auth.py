@@ -140,11 +140,9 @@ def login():
       200:
         description: Login successful
       401:
-        description: Invalid password
+        description: Email or password wrong
       403:
         description: Account suspended
-      404:
-        description: User not found
     """
     try:
         data = request.get_json()
@@ -157,15 +155,12 @@ def login():
         user = User.query.filter_by(email=email).first()
         
 
-        if not user:
-            return jsonify({"error": "User not found"}), 404
+        if not user or not check_password_hash(user.password_hash, password):
+            return jsonify({"error": "Email or password wrong"}), 401
         
 
         if user.blocked:
             return jsonify({"error": "Account is suspended"}), 403
-        
-        if not check_password_hash(user.password_hash, password):
-            return jsonify({"error": "Invalid password"}), 401
         
 
         access_token = create_access_token(identity={"id": user.id, "role": user.role})
