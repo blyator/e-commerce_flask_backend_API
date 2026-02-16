@@ -55,13 +55,16 @@ def toggle_block_user(id):
       403:
         description: Admin only
       404:
-        description: User not found
+        description: Invalid user information
     """
     identity = get_jwt_identity()
     if identity['role'] != 'admin':
         return jsonify({"error": "Admin only"}), 403
 
-    user = User.query.get_or_404(id)
+    user = User.query.get(id)
+    if not user:
+        return jsonify({"error": "Invalid user information"}), 404
+        
     user.blocked = not user.blocked
     db.session.commit()
 
@@ -93,7 +96,7 @@ def delete_user(id):
       403:
         description: Admin only
       404:
-        description: User not found
+        description: Invalid user information
     """
     identity = get_jwt_identity()
     if identity['role'] != 'admin':
@@ -101,7 +104,7 @@ def delete_user(id):
 
     user = User.query.get(id)
     if not user:
-        return jsonify({"error": "User not found"}), 404
+        return jsonify({"error": "Invalid user information"}), 404
 
     db.session.delete(user)
     db.session.commit()
@@ -201,14 +204,14 @@ def delete_account():
       200:
         description: Account deleted
       404:
-        description: User not found
+        description: Invalid user information
     """
     identity = get_jwt_identity()
     user_id = identity.get("id")
 
     user = User.query.get(user_id)
     if not user:
-        return jsonify({"error": "User not found"}), 404
+        return jsonify({"error": "Invalid user information"}), 404
 
     try:
         Order.query.filter_by(user_id=user_id).update({"user_id": None})
@@ -256,13 +259,15 @@ def change_password():
         description: Password updated
       400:
         description: Invalid current password
+      404:
+        description: Invalid user information
     """
     identity = get_jwt_identity()
     user_id = identity.get("id")
 
     user = User.query.get(user_id)
     if not user:
-        return jsonify({"error": "User not found"}), 404
+        return jsonify({"error": "Invalid user information"}), 404
 
     data = request.get_json()
     current_password = data.get("current_password")
