@@ -19,6 +19,7 @@ def get_products():
       - name: category
         in: query
         type: string
+        enum: [all, skincare, makeup, haircare]
         description: Filter by category name
       - name: sort
         in: query
