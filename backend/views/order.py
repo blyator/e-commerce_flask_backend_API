@@ -56,7 +56,7 @@ def get_all_orders():
             
         user = User.query.get(user_id)
         if not user:
-            return jsonify({'error': 'User not found'}), 404
+            return jsonify({'error': 'Invalid user information'}), 404
 
         status_filter = request.args.get('status')
 
@@ -465,7 +465,7 @@ def update_order_status(order_id):
             
         user = User.query.get(user_id)
         if not user:
-            return jsonify({'error': 'User not found'}), 404
+            return jsonify({'error': 'Invalid user information'}), 404
         
         if user.role != 'admin':
             return jsonify({'error': 'Unauthorized'}), 403
