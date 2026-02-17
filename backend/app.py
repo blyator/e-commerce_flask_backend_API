@@ -4,6 +4,7 @@ from flask_cors import CORS
 from flasgger import Swagger
 from models import db, TokenBlocklist, jwt
 from extensions import cache
+from celery_app import celery_init_app
 from views import auth_bp, user_bp, product_bp, order_bp, category_bp, cart_bp
 from views.mailserver import email
 from dotenv import load_dotenv
@@ -26,11 +27,23 @@ def create_app():
     app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(days=1)
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 
+    # Celery config
+    app.config.from_mapping(
+        CELERY=dict(
+            broker_url=os.getenv('REDIS_URL', 'redis://redis:6379/0'),
+            result_backend=os.getenv('REDIS_URL', 'redis://redis:6379/0'),
+            task_ignore_result=True,
+            include=['tasks'],
+        ),
+    )
+    celery_init_app(app)
+
     # Cache config
     app.config['CACHE_TYPE'] = 'RedisCache'
     app.config['CACHE_REDIS_URL'] = os.getenv('REDIS_URL', 'redis://redis:6379/0')
     app.config['CACHE_DEFAULT_TIMEOUT'] = 300
-
+    
+    # Swagger config
     app.config['SWAGGER'] = {
         'title': 'The Shop API',
         'uiversion': 3,
@@ -87,6 +100,8 @@ def create_app():
 
     return app
 
+app = create_app()
+celery_app = app.extensions["celery"]
+
 if __name__ == '__main__':
-    app = create_app()
     app.run(host='0.0.0.0', port=5000, debug=True)
