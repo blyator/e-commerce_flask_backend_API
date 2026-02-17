@@ -3,7 +3,7 @@ from flask_migrate import Migrate
 from flask_cors import CORS
 from flasgger import Swagger
 from models import db, TokenBlocklist, jwt
-from extensions import cache
+from extensions import cache, limiter
 from celery_app import celery_init_app
 from views import auth_bp, user_bp, product_bp, order_bp, category_bp, cart_bp
 from views.mailserver import email
@@ -42,6 +42,11 @@ def create_app():
     app.config['CACHE_TYPE'] = 'RedisCache'
     app.config['CACHE_REDIS_URL'] = os.getenv('REDIS_URL', 'redis://redis:6379/0')
     app.config['CACHE_DEFAULT_TIMEOUT'] = 300
+
+    # Rate Limiter config
+    app.config['RATELIMIT_STORAGE_URI'] = os.getenv('REDIS_URL', 'redis://redis:6379/0')
+    app.config['RATELIMIT_STRATEGY'] = 'fixed-window'
+    app.config['RATELIMIT_HEADERS_ENABLED'] = True
     
     # Swagger config
     app.config['SWAGGER'] = {
@@ -68,6 +73,7 @@ def create_app():
     db.init_app(app)
     migrate.init_app(app, db)
     cache.init_app(app)
+    limiter.init_app(app)
     jwt.init_app(app)
     CORS(app, credentials=True)
     Swagger(app)
