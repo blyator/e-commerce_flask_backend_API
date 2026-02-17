@@ -12,6 +12,7 @@ from datetime import datetime, timezone
 from functools import wraps
 from models import db, User, TokenBlocklist, jwt
 from views.mailserver import send_email
+from extensions import limiter
 
 auth_bp = Blueprint('auth', __name__)
 
@@ -41,6 +42,7 @@ def revoked_token_response(jwt_header, jwt_payload):
 
 
 @auth_bp.route('/register', methods=['POST'])
+@limiter.limit("5 per minute")
 def register():
     """
     Register a new user
@@ -113,6 +115,7 @@ def register():
     }), 201
 
 @auth_bp.route('/login', methods=['POST'])
+@limiter.limit("5 per minute")
 def login():
     """
     Login user
