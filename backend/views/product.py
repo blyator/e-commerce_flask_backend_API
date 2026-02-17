@@ -1,10 +1,12 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import db, Product, Category
+from extensions import cache
 
 product_bp = Blueprint('product', __name__, url_prefix='/products')
 
 @product_bp.route('/', methods=['GET'])
+@cache.cached(timeout=300, query_string=True)
 def get_products():
     """
     Get all products
@@ -126,6 +128,9 @@ def add_product():
     db.session.add(new_product)
     db.session.commit()
 
+    # Invalidate products cache
+    cache.delete('view//products/')
+
     return jsonify(new_product.to_dict()), 201
 
 
@@ -204,6 +209,10 @@ def update_product(id):
         if field in data:
             setattr(product, field, data[field])
     db.session.commit()
+
+    # Invalidate products cache
+    cache.delete('view//products/')
+
     return jsonify(product.to_dict())
 
 
@@ -245,11 +254,13 @@ def delete_product(id):
         product = Product.query.get_or_404(id)
         db.session.delete(product)
         db.session.commit()
+
+        # Invalidate products cache
+        cache.delete('view//products/')
+
         return jsonify({"message": "Product deleted"}), 200
 
     except Exception as e:
         db.session.rollback()
         print("Delete error:", str(e))
-        return jsonify({"error": str(e)}), 500
-
         return jsonify({"error": str(e)}), 500
