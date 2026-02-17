@@ -1,38 +1,29 @@
-from flask_mail import Mail, Message
-from threading import Thread
-from flask import current_app
+from flask_mail import Message
+from extensions import mail
 import os
 
-mail = Mail()
-
 def email(app):
-    app.config['MAIL_SERVER'] = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
-    app.config['MAIL_PORT'] = int(os.environ.get('MAIL_PORT', 587))
-    app.config['MAIL_USE_TLS'] = os.environ.get('MAIL_USE_TLS', 'True') == 'True'
-    app.config['MAIL_USE_SSL'] = os.environ.get('MAIL_USE_SSL', 'False') == 'True'
-    app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
-    app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
-    app.config['MAIL_DEFAULT_SENDER'] = os.environ.get('MAIL_DEFAULT_SENDER')
+    app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+    app.config['MAIL_PORT'] = 587
+    app.config['MAIL_USE_TLS'] = True
+    app.config['MAIL_USE_SSL'] = False
+    app.config['MAIL_USERNAME'] = 'demajor45@gmail.com'
+    app.config['MAIL_PASSWORD'] = 'wnpc ygqz xnzm ckia'
+    app.config['MAIL_DEFAULT_SENDER'] = 'demajor45@gmail.com'
     
     mail.init_app(app)
 
-def send_async_email(app, msg):
-    with app.app_context():
-        try:
-            mail.send(msg)
-        except Exception as e:
-            print(f"Failed to send email: {e}")
-
 def send_email(name, email):
-    subject = "Welcome to The Beauty"
+    from tasks import send_celery_email
+    subject = "Welcome to The Shop"
     
     html_body = f"""
     <html>
         <body style="font-family: Arial, sans-serif; background-color: #fff0f5; color: #3a0c1a; padding: 20px; line-height: 1.6;">
-            <h2 style="color: #d6336c; margin-bottom: 25px;">Hello {name}, Welcome to The Beauty!</h2>
+            <h2 style="color: #d6336c; margin-bottom: 25px;">Hello {name}, Welcome to The Shop!</h2>
             
             <p style="margin-bottom: 20px; font-size: 16px;">
-                Thank you for joining <strong>The Beauty</strong> — your one-stop shop for quality products that bring out your natural shine.
+                Thank you for joining <strong>The Shop</strong> — your one-stop shop for quality products.
             </p>
             
             <p style="margin-bottom: 15px; font-size: 16px;">With us, you can:</p>
@@ -46,7 +37,7 @@ def send_email(name, email):
             <p style="margin-bottom: 25px; font-size: 16px;">Ready to look stunning?</p>
             
             <div style="margin: 30px 0;">
-                <a href="https://beauty-shop-opal.vercel.app/" 
+                <a href="https://the-shop-opal.vercel.app/" 
                    style="background-color: #e11d48; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;">
                    Start Shopping
                 </a>
@@ -54,7 +45,7 @@ def send_email(name, email):
             
             <p style="margin-top: 40px; font-size: 16px;">
                 With love,<br/>
-                <strong>The Beauty Team </strong>
+                <strong>The Shop Team </strong>
             </p>
         </body>
     </html>
@@ -63,30 +54,23 @@ def send_email(name, email):
     text_body = f"""
     Hello {name},
     
-    Welcome to The Beauty — your one-stop shop for the best products!
+    Welcome to The Shop — your one-stop shop for the best products!
     
     Here's what you can expect:
     - Explore handpicked skincare, makeup, and haircare
     - Get exclusive offers
     - Enjoy a smooth shopping experience
     
-    Start shopping now: https://beauty-shop-opal.vercel.app/
+    Start shopping now: https://the-shop-opal.vercel.app/
     With love,
-    The Beauty Team 
+    The Shop Team 
     """
     
-    msg = Message(
-        subject=subject,
-        recipients=[email],
-        html=html_body,
-        body=text_body
-    )
-    
-    app = current_app._get_current_object()
-    Thread(target=send_async_email, args=(app, msg)).start()
+    send_celery_email.delay(subject, [email], html_body, text_body)
 
 def send_reset_email(email, reset_url):
-    subject = "Reset Your Password - The Beauty"
+    from tasks import send_celery_email
+    subject = "Reset Your Password - The Shop"
     
     html_body = f"""
     <html>
@@ -118,7 +102,7 @@ def send_reset_email(email, reset_url):
             
             <p style="margin-top: 40px; font-size: 16px;">
                 With care,<br/>
-                <strong>The Beauty Team </strong>
+                <strong>The Shop Team </strong>
             </p>
         </body>
     </html>
@@ -127,7 +111,7 @@ def send_reset_email(email, reset_url):
     text_body = f"""
     Hello,
     
-    You requested a password reset for your The Beauty account ({email}).
+    You requested a password reset for your The Shop account ({email}).
     
     Click the link below to reset it:
     {reset_url}
@@ -137,21 +121,14 @@ def send_reset_email(email, reset_url):
     If you didn't request this reset, you can ignore this email.
     
     With care,
-    The Beauty Team 
+    The Shop Team 
     """
     
-    msg = Message(
-        subject=subject,
-        recipients=[email],
-        html=html_body,
-        body=text_body
-    )
-    
-    app = current_app._get_current_object()
-    Thread(target=send_async_email, args=(app, msg)).start()
+    send_celery_email.delay(subject, [email], html_body, text_body)
 
 def send_order_confirmation_email(name, email, order):     
-    subject = f"Order Confirmation - #{order['id']} | The Beauty"      
+    from tasks import send_celery_email
+    subject = f"Order Confirmation - #{order['id']} | The Shop"      
     
 
     html_items = ''.join(f"<li>{item['quantity']} x {item['name']} - Ksh {item['price']:.2f} each = Ksh {(item['price'] * item['quantity']):.2f}</li>" for item in order['items'])          
@@ -168,7 +145,7 @@ def send_order_confirmation_email(name, email, order):
         <body style="font-family: Arial, sans-serif; background-color: #ffffff; color: #3a0c1a; padding: 20px; line-height: 1.6;">             
             <h2 style="color: #d6336c;">Hi {name}, your order is confirmed! </h2>                          
             
-            <p>Thank you for shopping with <strong>The Beauty</strong>. We're thrilled to get started on your order.</p>                          
+            <p>Thank you for shopping with <strong>The Shop</strong>. We're thrilled to get started on your order.</p>                          
             
             <p><strong>Order ID:</strong> {order['id']}<br/>                
             <strong>Invoice:</strong> {order.get('invoice_number', f"INV-{order['id']}")}<br/>
@@ -190,14 +167,14 @@ def send_order_confirmation_email(name, email, order):
             <p style="margin-top: 30px;">We'll notify you once it ships. Estimated delivery is 1-3 days. Meanwhile, you can track your order anytime from your account.</p>              
             
            <div style="margin-top: 40px;">                 
-    <a href="https://beauty-shop-opal.vercel.app/{order['id']}"                     
+    <a href="https://the-shop-opal.vercel.app/{order['id']}"                     
        style="background-color: #e11d48; color: white; padding: 12px 25px; text-decoration: none; border-radius: 6px; font-weight: bold;">                    
         View Order                 
     </a>             
 </div>
             <p style="margin-top: 30px; font-size: 14px; color: #666;">
             Need help? Contact us:<br/>
-            Email: info@thebeauty.com<br/>
+            Email: info@theshop.com<br/>
             Phone: +254 721 400 997
             </p>              
             
@@ -207,7 +184,7 @@ def send_order_confirmation_email(name, email, order):
 
     text_body = f"""Hi {name},  
 
-Thanks for your order with The Beauty!  
+Thanks for your order with The Shop!  
 
 Order ID: {order['id']} 
 Invoice: {order.get('invoice_number', f"INV-{order['id']}")} 
@@ -226,62 +203,55 @@ Total Paid: Ksh {order['total']:.2f}
 
 Estimated delivery: 1-3 days
 
-You can view your order here: https://beauty-shop-opal.vercel.app/{order['id']}  
+You can view your order here: https://the-shop.app/{order['id']}  
 
 Need help? 
-Email: support@thebeauty.co.ke
+Email: support@theshop.co.ke
 Phone: +254 700 000 000
 
 With love, 
-The Beauty Team 💖"""      
+The Shop Team 💖"""      
 
-    msg = Message(         
-        subject=subject,         
-        recipients=[email],         
-        html=html_body,        
-        body=text_body     
-    )      
-
-    app = current_app._get_current_object()
-    Thread(target=send_async_email, args=(app, msg)).start()
+    send_celery_email.delay(subject, [email], html_body, text_body)
 
 def send_manager_invite_email(name, email, is_existing_user=False, password=None):
-    subject = "You've Been Added as a Manager - The Beauty"
+    from tasks import send_celery_email
+    subject = "You've Been Added as a Manager - The Shop"
 
     if is_existing_user:
         html_body = f"""
         <html>
             <body style="font-family: Arial, sans-serif; background-color: #fff0f5; color: #3a0c1a; padding: 20px; line-height: 1.6;">
                 <h2 style="color: #d6336c;">Hi {name},</h2>
-                <p>We're excited to let you know that you've been granted <strong>Manager Access</strong> on <strong>The Beauty</strong>.</p>
+                <p>We're excited to let you know that you've been granted <strong>Manager Access</strong> on <strong>The Shop</strong>.</p>
                 <p>You can now log in and manage orders and products directly from the admin panel.</p>
                 <div style="margin: 30px 0;">
-                    <a href="https://beauty-shop-opal.vercel.app/login"
+                    <a href="https://the-shop-opal.vercel.app/login"
                        style="background-color: #e11d48; color: white; padding: 12px 25px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
                        Login
                     </a>
                 </div>
-                <p style="margin-top: 40px;">With love,<br/>The Beauty Team 💖</p>
+                <p style="margin-top: 40px;">With love,<br/>The Shop Team 💖</p>
             </body>
         </html>
         """
 
         text_body = f"""Hi {name},
 
-You've been promoted to Manager on The Beauty platform!
+You've been promoted to Manager on The Shop platform!
 
 You can now log in and manage products and orders here:
-https://beauty-shop-opal.vercel.app/login
+https://the-shop-opal.vercel.app/login
 
 With love,
-The Beauty Team 💖
+The Shop Team 💖
 """
     else:
         html_body = f"""
         <html>
             <body style="font-family: Arial, sans-serif; background-color: #fff0f5; color: #3a0c1a; padding: 20px; line-height: 1.6;">
                 <h2 style="color: #d6336c;">Welcome {name}!</h2>
-                <p>You've been added as a <strong>Manager</strong> on <strong>The Beauty</strong>.</p>
+                <p>You've been added as a <strong>Manager</strong> on <strong>The Shop</strong>.</p>
                 <p>Your login details are:</p>
                 <ul>
                     <li><strong>Email:</strong> {email}</li>
@@ -289,37 +259,29 @@ The Beauty Team 💖
                 </ul>
                 <p>We recommend changing your password after first login.</p>
                 <div style="margin: 30px 0;">
-                    <a href="https://beauty-shop-opal.vercel.app/login"
+                    <a href="https://the-shop-opal.vercel.app/login"
                        style="background-color: #e11d48; color: white; padding: 12px 25px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
                        Log In as Manager
                     </a>
                 </div>
-                <p style="margin-top: 40px;">With love,<br/>The Beauty Team 💖</p>
+                <p style="margin-top: 40px;">With love,<br/>The Shop Team 💖</p>
             </body>
         </html>
         """
 
         text_body = f"""Welcome {name}!
 
-You've been added as a Manager on The Beauty.
+You've been added as a Manager on The Shop.
 
 Login with:
 Email: {email}
 Password: {password}
 
 
-Access the admin dashboard here: https://beauty-shop-opal.vercel.app/login
+Access the admin dashboard here: https://the-shop-opal.vercel.app/login
 
 With love,
-The Beauty Team 💖
+The Shop Team 💖
 """
 
-    msg = Message(
-        subject=subject,
-        recipients=[email],
-        html=html_body,
-        body=text_body
-    )
-
-    app = current_app._get_current_object()
-    Thread(target=send_async_email, args=(app, msg)).start()
+    send_celery_email.delay(subject, [email], html_body, text_body)
