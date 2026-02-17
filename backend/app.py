@@ -3,6 +3,7 @@ from flask_migrate import Migrate
 from flask_cors import CORS
 from flasgger import Swagger
 from models import db, TokenBlocklist, jwt
+from extensions import cache
 from views import auth_bp, user_bp, product_bp, order_bp, category_bp, cart_bp
 from views.mailserver import email
 from dotenv import load_dotenv
@@ -24,6 +25,11 @@ def create_app():
     app.config['JWT_SECRET_KEY'] = os.getenv('JWT_SECRET_KEY')
     app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(days=1)
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+
+    # Cache config
+    app.config['CACHE_TYPE'] = 'RedisCache'
+    app.config['CACHE_REDIS_URL'] = os.getenv('REDIS_URL', 'redis://redis:6379/0')
+    app.config['CACHE_DEFAULT_TIMEOUT'] = 300
 
     app.config['SWAGGER'] = {
         'title': 'The Shop API',
@@ -48,6 +54,7 @@ def create_app():
 
     db.init_app(app)
     migrate.init_app(app, db)
+    cache.init_app(app)
     jwt.init_app(app)
     CORS(app, credentials=True)
     Swagger(app)
