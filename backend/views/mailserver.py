@@ -1,6 +1,7 @@
 from flask_mail import Message
 from extensions import mail
 import os
+from tasks import send_celery_email
 
 def email(app):
     app.config['MAIL_SERVER'] = 'smtp.gmail.com'
@@ -14,7 +15,6 @@ def email(app):
     mail.init_app(app)
 
 def send_email(name, email):
-    from tasks import send_celery_email
     subject = "Welcome to The Shop"
     
     html_body = f"""
@@ -69,7 +69,6 @@ def send_email(name, email):
     send_celery_email.delay(subject, [email], html_body, text_body)
 
 def send_reset_email(email, reset_url):
-    from tasks import send_celery_email
     subject = "Reset Your Password - The Shop"
     
     html_body = f"""
@@ -127,7 +126,7 @@ def send_reset_email(email, reset_url):
     send_celery_email.delay(subject, [email], html_body, text_body)
 
 def send_order_confirmation_email(name, email, order):     
-    from tasks import send_celery_email
+
     subject = f"Order Confirmation - #{order['id']} | The Shop"      
     
 
@@ -215,7 +214,7 @@ The Shop Team 💖"""
     send_celery_email.delay(subject, [email], html_body, text_body)
 
 def send_manager_invite_email(name, email, is_existing_user=False, password=None):
-    from tasks import send_celery_email
+
     subject = "You've Been Added as a Manager - The Shop"
 
     if is_existing_user:
