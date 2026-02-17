@@ -1,10 +1,12 @@
 from flask import Blueprint, jsonify, request
 from models import db, Category
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from extensions import cache
 
 category_bp = Blueprint('category', __name__, url_prefix='/categories')
 
 @category_bp.route('/', methods=['GET'])
+@cache.cached(timeout=3600)
 def list_categories():
     """
     List all categories with products
@@ -61,5 +63,8 @@ def add_category():
     category = Category(name=data['name'])
     db.session.add(category)
     db.session.commit()
+
+    # Invalidate categories cache
+    cache.delete('view//categories/')
 
     return jsonify(category.to_dict()), 201
