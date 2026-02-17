@@ -67,6 +67,19 @@ def create_app():
             {'name': 'Cart', 'description': 'User shopping cart'},
             {'name': 'Orders', 'description': 'Order processing and history'},
             {'name': 'Users', 'description': 'User account and management'}
+        ],
+        'securityDefinitions': {
+            'Bearer': {
+                'type': 'apiKey',
+                'name': 'Authorization',
+                'in': 'header',
+                'description': 'Login then Paste token with format: Bearer {token}'
+            }
+        },
+        'security': [
+            {
+                'Bearer': []
+            }
         ]
     }
 
