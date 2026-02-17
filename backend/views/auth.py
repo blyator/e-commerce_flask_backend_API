@@ -64,9 +64,6 @@ def register():
               type: string
             password:
               type: string
-            role:
-              type: string
-              default: customer
     responses:
       201:
         description: User created successfully
@@ -93,7 +90,7 @@ def register():
     user = User(
         username=username,
         email=data['email'],
-        role=data.get('role', 'customer'),
+        role='customer',
         password_hash=generate_password_hash(data['password'])
     )
 
