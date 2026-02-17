@@ -1,12 +1,13 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import db, Product, Category
-from extensions import cache
+from extensions import cache, limiter
 
 product_bp = Blueprint('product', __name__, url_prefix='/products')
 
 @product_bp.route('/', methods=['GET'])
 @cache.cached(timeout=300, query_string=True)
+@limiter.limit("20 per minute")
 def get_products():
     """
     Get all products
