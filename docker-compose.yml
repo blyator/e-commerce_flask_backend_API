@@ -21,6 +21,7 @@ services:
 
   api:
     build: ./backend
+    image: shop_api
     container_name: shop_api
     restart: always
     command: python app.py
@@ -42,6 +43,44 @@ services:
     depends_on:
       - db
       - redis
+
+  celery:
+    build: ./backend
+    image: shop_celery
+    container_name: celery
+    restart: always
+    command: celery -A app:celery_app worker --loglevel=info
+    volumes:
+      - ./backend:/app
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=${REDIS_URL}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - SECRET_KEY=${SECRET_KEY}
+      - MAIL_SERVER=${MAIL_SERVER}
+      - MAIL_PORT=${MAIL_PORT}
+      - MAIL_USE_TLS=${MAIL_USE_TLS}
+      - MAIL_USERNAME=${MAIL_USERNAME}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
+      - MAIL_DEFAULT_SENDER=${MAIL_DEFAULT_SENDER}
+    depends_on:
+      - db
+      - redis
+
+  flower:
+    image: mher/flower
+    container_name: celery_flower
+    restart: always
+    command: celery --broker=${REDIS_URL} flower --port=${FLOWER_PORT}
+    environment:
+      - CELERY_BROKER_URL=${REDIS_URL}
+      - CELERY_RESULT_BACKEND=${REDIS_URL}
+      - FLOWER_PORT=${FLOWER_PORT}
+    ports:
+      - "${FLOWER_PORT}:${FLOWER_PORT}"
+    depends_on:
+      - redis
+      - celery
 
 volumes:
   postgres_data:
