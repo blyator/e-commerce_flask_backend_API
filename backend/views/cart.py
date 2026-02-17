@@ -2,12 +2,22 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import db, CartItem, Product
+from extensions import cache
 
 cart_bp = Blueprint('cart', __name__, url_prefix='/cart')
 from sqlalchemy.orm import joinedload
 
+def make_cart_cache_key(*args, **kwargs):
+    user_identity = get_jwt_identity()
+    if isinstance(user_identity, dict):
+        user_id = user_identity.get('id')
+    else:
+        user_id = user_identity
+    return f"view//cart/{user_id}"
+
 @cart_bp.route('', methods=['GET'])
 @jwt_required()
+@cache.cached(timeout=120, make_cache_key=make_cart_cache_key)
 def view_cart():
     """
     View current user cart
@@ -114,12 +124,16 @@ def add_to_cart():
 
             existing_item.quantity += quantity
             db.session.commit()
+            # Invalidate cart cache
+            cache.delete(f"view//cart/{user_id}")
             return jsonify(existing_item.to_dict()), 200
         else:
 
             new_item = CartItem(user_id=user_id, product_id=product_id, quantity=quantity)
             db.session.add(new_item)
             db.session.commit()
+            # Invalidate cart cache
+            cache.delete(f"view//cart/{user_id}")
             return jsonify(new_item.to_dict()), 201
     
     except Exception as e:
@@ -165,6 +179,8 @@ def remove_from_cart(item_id):
         
         db.session.delete(item)
         db.session.commit()
+        # Invalidate cart cache
+        cache.delete(f"view//cart/{user_id}")
         return jsonify({"message": "Item removed successfully"}), 200
     
     except Exception as e:
@@ -233,6 +249,8 @@ def update_cart_item(item_id):
         
         item.quantity = quantity
         db.session.commit()
+        # Invalidate cart cache
+        cache.delete(f"view//cart/{user_id}")
         return jsonify(item.to_dict()), 200
     
     except Exception as e:
@@ -266,6 +284,8 @@ def clear_cart():
         
         CartItem.query.filter_by(user_id=user_id).delete()
         db.session.commit()
+        # Invalidate cart cache
+        cache.delete(f"view//cart/{user_id}")
         return jsonify({"message": "Cart cleared successfully"}), 200
     
     except Exception as e:
