@@ -10,7 +10,7 @@ product_bp = Blueprint('product', __name__, url_prefix='/products')
 @limiter.limit("20 per minute")
 def get_products():
     """
-    Get all products
+    Get all products (Paginated)
     ---
     tags:
       - Products
@@ -29,13 +29,25 @@ def get_products():
         type: string
         enum: [price-low, price-high, rating, newest, name]
         description: Sort criteria
+      - name: page
+        in: query
+        type: integer
+        default: 1
+        description: Page number
+      - name: per_page
+        in: query
+        type: integer
+        default: 10
+        description: Items per page
     responses:
       200:
-        description: List of products
+        description: Paginated list of products
     """
     search = request.args.get("search", "", type=str).lower()
     category_name = request.args.get("category", "all", type=str).lower()
-    sort = request.args.get("sort", "newest", type=str).lower() 
+    sort = request.args.get("sort", "newest", type=str).lower()
+    page = request.args.get("page", 1, type=int)
+    per_page = request.args.get("per_page", 10, type=int)
 
     query = Product.query.join(Category)
 
@@ -58,8 +70,17 @@ def get_products():
     sort_criteria = sort_map.get(sort, Product.id.desc())
     query = query.order_by(sort_criteria)
 
-    products = query.all()
-    return jsonify([p.to_dict() for p in products])
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+    
+    return jsonify({
+        "products": [p.to_dict() for p in pagination.items],
+        "total": pagination.total,
+        "pages": pagination.pages,
+        "current_page": pagination.page,
+        "per_page": pagination.per_page,
+        "has_next": pagination.has_next,
+        "has_prev": pagination.has_prev
+    })
 
 
 
