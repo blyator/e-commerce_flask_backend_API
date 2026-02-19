@@ -101,8 +101,6 @@ services:
       - JWT_SECRET_KEY=${JWT_SECRET_KEY}
     depends_on:
       - api
-    profiles:
-      - loadtest
 
 volumes:
   postgres_data:
