@@ -115,7 +115,7 @@ def register():
     }), 201
 
 @auth_bp.route('/login', methods=['POST'])
-@limiter.limit("5 per minute")
+@limiter.limit("1000 per minute")
 def login():
     """
     Login user

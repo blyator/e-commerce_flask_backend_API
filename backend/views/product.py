@@ -2,12 +2,13 @@ from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from models import db, Product, Category
 from extensions import cache, limiter
+from sqlalchemy.orm import joinedload
 
 product_bp = Blueprint('product', __name__, url_prefix='/products')
 
 @product_bp.route('/', methods=['GET'])
 @cache.cached(timeout=300, query_string=True)
-@limiter.limit("20 per minute")
+@limiter.limit("2000 per minute")
 def get_products():
     """
     Get all products (Paginated)
@@ -49,7 +50,7 @@ def get_products():
     page = request.args.get("page", 1, type=int)
     per_page = request.args.get("per_page", 10, type=int)
 
-    query = Product.query.join(Category)
+    query = Product.query.options(joinedload(Product.category)).join(Category)
 
     if category_name != "all":
         query = query.filter(Category.name.ilike(category_name))
