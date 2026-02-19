@@ -5,6 +5,7 @@ from datetime import datetime
 import uuid
 import logging
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import joinedload
 from views.mailserver import send_email, send_order_confirmation_email
 
 
@@ -61,9 +62,17 @@ def get_all_orders():
         status_filter = request.args.get('status')
 
         if user.role in ['admin', 'manager']:
-            orders_query = Order.query
+            orders_query = Order.query.options(
+                joinedload(Order.order_items).joinedload(OrderItem.product),
+                joinedload(Order.user),
+                joinedload(Order.invoice)
+            )
         else:
-            orders_query = Order.query.filter_by(user_id=user_id)
+            orders_query = Order.query.filter_by(user_id=user_id).options(
+                joinedload(Order.order_items).joinedload(OrderItem.product),
+                joinedload(Order.user),
+                joinedload(Order.invoice)
+            )
 
         if status_filter and status_filter.lower() != "all":
             orders_query = orders_query.filter(Order.status.ilike(f'%{status_filter}%'))
@@ -105,7 +114,11 @@ def get_user_orders():
 
         status_filter = request.args.get('status')
 
-        orders_query = Order.query.filter_by(user_id=user_id)
+        orders_query = Order.query.filter_by(user_id=user_id).options(
+            joinedload(Order.order_items).joinedload(OrderItem.product),
+            joinedload(Order.user),
+            joinedload(Order.invoice)
+        )
 
         if status_filter and status_filter.lower() != "all":
             orders_query = orders_query.filter(Order.status.ilike(f'%{status_filter}%'))
@@ -176,10 +189,15 @@ def get_order_details(order_id):
         
 
         user = User.query.get(user_id)
+        order_query = Order.query.options(
+            joinedload(Order.order_items).joinedload(OrderItem.product),
+            joinedload(Order.user),
+            joinedload(Order.invoice)
+        )
         if user.role == 'admin':
-            order = Order.query.get(order_id)
+            order = order_query.get(order_id)
         else:
-            order = Order.query.filter_by(id=order_id, user_id=user_id).first()
+            order = order_query.filter_by(id=order_id, user_id=user_id).first()
 
         if not order:
             return jsonify({'error': 'Order not found'}), 404
@@ -380,15 +398,20 @@ def get_order_invoice(order_id):
             return jsonify({'error': 'Invalid token or user not authenticated'}), 401
 
         user = User.query.get(user_id)
+        order_query = Order.query.options(
+            joinedload(Order.order_items).joinedload(OrderItem.product),
+            joinedload(Order.user),
+            joinedload(Order.invoice)
+        )
         if user.role == 'admin':
-            order = Order.query.get(order_id)
+            order = order_query.get(order_id)
         else:
-            order = Order.query.filter_by(id=order_id, user_id=user_id).first()
+            order = order_query.filter_by(id=order_id, user_id=user_id).first()
             
         if not order:
             return jsonify({'error': 'Order not found'}), 404
 
-        invoice = Invoice.query.filter_by(order_id=order_id).first()
+        invoice = order.invoice
         if not invoice:
             return jsonify({'error': 'Invoice not found'}), 404
 
@@ -481,7 +504,11 @@ def update_order_status(order_id):
         if new_status not in valid_statuses:
             return jsonify({'error': 'Invalid status', 'valid_statuses': valid_statuses}), 400
 
-        order = Order.query.get(order_id)
+        order = Order.query.options(
+            joinedload(Order.order_items).joinedload(OrderItem.product),
+            joinedload(Order.user),
+            joinedload(Order.invoice)
+        ).get(order_id)
         if not order:
             return jsonify({'error': 'Order not found'}), 404
 
