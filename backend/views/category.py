@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, request
 from models import db, Category
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from extensions import cache
+from sqlalchemy.orm import joinedload
 
 category_bp = Blueprint('category', __name__, url_prefix='/categories')
 
@@ -17,7 +18,7 @@ def list_categories():
       200:
         description: List of categories
     """
-    categories = Category.query.all()
+    categories = Category.query.options(joinedload(Category.products)).all()
     return jsonify([category.to_dict() for category in categories]), 200
 
 @category_bp.route('/', methods=['POST'])
