@@ -91,7 +91,7 @@ class ShoppingUser(BaseUser):
         # First get products to find valid IDs
         response = self.client.get("/products/", headers=self._get_auth_headers())
         if response.status_code == 200:
-            products = response.json()
+            products = response.json().get("products", [])
             if products:
                 product = random.choice(products)
                 product_id = product.get("id")
