@@ -103,7 +103,7 @@ def create_app():
         "title": "The Shop API",
         "version": "0.0.1",
         "description": """
-        ## 🔐 Authentication
+        ## Authentication
         This API requires a Bearer token for protected endpoints.
 
         **Demo Credentials:**  

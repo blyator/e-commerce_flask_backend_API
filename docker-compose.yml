@@ -73,7 +73,7 @@ services:
     image: mher/flower
     container_name: celery_flower
     restart: always
-    command: celery --broker=${REDIS_URL} flower --port=${FLOWER_PORT}
+    command: celery --broker=${REDIS_URL} flower --port=${FLOWER_PORT} --url_prefix=shop-api/flower
     environment:
       - CELERY_BROKER_URL=${REDIS_URL}
       - CELERY_RESULT_BACKEND=${REDIS_URL}
