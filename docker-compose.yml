@@ -24,7 +24,7 @@ services:
     image: shop_api
     container_name: shop_api
     restart: always
-    command: python app.py
+    command: gunicorn --workers 2 --bind 0.0.0.0:5000 app:app
     volumes:
       - ./backend:/app
     ports:
