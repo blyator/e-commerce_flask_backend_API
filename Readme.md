@@ -3,10 +3,11 @@
 > A robust, scalable, and production-ready e-commerce API built with Flask.
 
 <p align="center">
-  <img src="screenshots/Locust..png" alt="Locust Dashboard Screenshot " width="220px">
-  <img src="screenshots/Swagger.png" alt="Flower Dashboard Screenshot" width="220px">
-  <img src="screenshots/flower.png" alt="Swagger UI Screenshot" width="220px">
-  <img src="screenshots/Locust.png" alt="Locust Dashboard Screenshot" width="220px">
+  <img src="screenshots/Swagger.png" alt="Locust Dashboard Screenshot 1" width="45%">
+  <img src="screenshots/Locust..png" alt="swaDashboard Screenshot" width="45%">
+  <br>
+  <img src="screenshots/Locust.png" alt="Swagger UI Screenshot" width="45%">
+  <img src="screenshots/flower.png" alt="Locust Dashboard Screenshot 2" width="45%">
 </p>
 
 
@@ -75,9 +76,9 @@ The system uses a decoupled, containerized stack designed for high-concurrency a
 
 **Message Broker & Cache (Redis):** Dual-purpose engine for task queuing and fast data retrieval.
 
-**Asynchronous Processing (Celery):** Distributed workers that offload heavy tasks (e.g., M-Pesa, Emails) to keep the API responsive.
+**Asynchronous Processing (Celery):** Distributed workers that offload heavy tasks like Emails to keep the API responsive.
 
-**Scale:** Every component is decoupled, allowing you to scale workers or database replicas independently as traffic grows.
+
 
 ---
 
@@ -123,20 +124,18 @@ Automated deployment is managed via Jenkins, ensuring code quality and zero-down
 1.  **Build and run the services with Docker Compose:**
     ```bash
     docker-compose up --build -d
-    ```
-    This starts all the services (web, db, redis, worker)
+    
+    This starts all the services (api, db, redis, worker)
 
 2.  **Apply database migrations:**
     Once the containers are running, apply the initial database schema:
     ```bash
-    docker-compose exec web alembic upgrade head
-    ```
+    docker-compose exec api alembic upgrade head
 
 3.  **Seed the database (optional):**
     To populate the database with sample data:
     ```bash
-    docker-compose exec web python seed.py
-    ```
+    docker-compose exec api python seed.py
 
 The API will now be running and accessible at `http://localhost:5000`.
 
