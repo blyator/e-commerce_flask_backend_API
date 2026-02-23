@@ -121,7 +121,7 @@ def create_app():
     },
     
     "host": os.getenv("API_HOST", "localhost:5001"),
-    "basePath": "/api",
+    "basePath": "/shop-api",
     "schemes": [os.getenv("API_SCHEME", "http")]
 }
     Swagger(app, template=swagger_template)
