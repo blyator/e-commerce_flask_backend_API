@@ -22,8 +22,8 @@ class BaseUser(HttpUser):
     def login(self):
         """Authenticate and get JWT token"""
         credentials = {
-            "email": "dmnbilly@gmail.com",  # Use test user
-            "password": "kiprop404"
+            "email": "user@demo.com",  # Use test user
+            "password": "demo1234"
         }
         
         with self.client.post("/login", json=credentials, catch_response=True) as response:
