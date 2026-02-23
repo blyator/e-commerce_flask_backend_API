@@ -92,7 +92,7 @@ services:
     pull_policy: never
     container_name: shop_locust
     restart: "no"
-    command: locust -f locustfile.py --host=http://api:5000
+    command: locust -f locustfile.py --host=https://serverdashboard.qzz.io
     volumes:
       - ./backend:/app
     ports:
