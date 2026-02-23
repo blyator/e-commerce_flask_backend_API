@@ -2,6 +2,14 @@
 
 > A robust, scalable, and production-ready e-commerce API built with Flask.
 
+<p align="center">
+  <img src="screenshots/Locust..png" alt="Locust Dashboard Screenshot " width="220px">
+  <img src="screenshots/Swagger.png" alt="Flower Dashboard Screenshot" width="220px">
+  <img src="screenshots/flower.png" alt="Swagger UI Screenshot" width="220px">
+  <img src="screenshots/Locust.png" alt="Locust Dashboard Screenshot" width="220px">
+</p>
+
+
 **API Documentation:** [https://serverdashboard.qzz.io/shop-api/swagger](https://serverdashboard.qzz.io/shop-api/swagger)
 
 **Load Testing Dashboard:** [https://serverdashboard.qzz.io/shop-api/locust/](https://serverdashboard.qzz.io/shop-api/locust/)
