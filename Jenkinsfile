@@ -24,11 +24,9 @@ pipeline {
         stage('Build & Deploy') {
             steps {
                 script {
-                    dir("${DEPLOY_PATH}") {
-                        echo "Rebuilding and restarting containers..."
+                    echo "Rebuilding and restarting containers..."
 
-                        sh "docker compose -f ${COMPOSE_FILE} up -d --build"
-                    }
+                    sh "docker-compose -f ${DEPLOY_PATH}/${COMPOSE_FILE} --project-directory ${DEPLOY_PATH} up -d --build"
                 }
             }
         }
