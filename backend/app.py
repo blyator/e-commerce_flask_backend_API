@@ -57,51 +57,38 @@ def create_app():
     
     # Swagger config
     app.config['SWAGGER'] = {
-    'title': 'The Shop API',
-    'uiversion': 3,
-    'specs_route': '/apidocs/',
-    'ui_params': {
-        'apisSorter': 'alpha',
-        'operationsSorter': 'alpha',
-        'tagsSorter': 'alpha',
-        'docExpansion': 'list',
-        'defaultModelsExpandDepth': -1,
-        'onComplete': '''function() {
-            fetch("/api/login", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email: "user@demo.com", password: "demo1234" })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.access_token) {
-                    ui.preauthorizeApiKey("Bearer", "Bearer " + data.access_token);
-                }
-            });
-        }'''
-    },
-    'tags': [
-        {'name': 'Authentication', 'description': 'Login, Logout, and Registration'},
-        {'name': 'Products', 'description': 'Product catalog management'},
-        {'name': 'Categories', 'description': 'Product categories'},
-        {'name': 'Cart', 'description': 'User shopping cart'},
-        {'name': 'Orders', 'description': 'Order processing and history'},
-        {'name': 'Users', 'description': 'User account and management'}
-    ],
-    'securityDefinitions': {
-        'Bearer': {
-            'type': 'apiKey',
-            'name': 'Authorization',
-            'in': 'header',
-            'description': 'Login then Paste token with format: Bearer {token}'
-        }
-    },
-    'security': [
-        {
-            'Bearer': []
-        }
-    ]
-}
+        'title': 'The Shop API',
+        'uiversion': 3,
+        'specs_route': '/apidocs/',
+        'ui_params': {
+            'apisSorter': 'alpha',
+            'operationsSorter': 'alpha',
+            'tagsSorter': 'alpha',
+            'docExpansion': 'list',
+            'defaultModelsExpandDepth': -1,
+        },
+        'tags': [
+            {'name': 'Authentication', 'description': 'Login, Logout, and Registration',},
+            {'name': 'Products', 'description': 'Product catalog management'},
+            {'name': 'Categories', 'description': 'Product categories'},
+            {'name': 'Cart', 'description': 'User shopping cart'},
+            {'name': 'Orders', 'description': 'Order processing and history'},
+            {'name': 'Users', 'description': 'User account and management'}
+        ],
+        'securityDefinitions': {
+            'Bearer': {
+                'type': 'apiKey',
+                'name': 'Authorization',
+                'in': 'header',
+                'description': 'Login then Paste token with format: Bearer {token}'
+            }
+        },
+        'security': [
+            {
+                'Bearer': []
+            }
+        ]
+    }
 
     db.init_app(app)
     migrate.init_app(app, db)
@@ -110,15 +97,25 @@ def create_app():
     jwt.init_app(app)
     CORS(app, credentials=True)
     swagger_template = {
-        "swagger": "2.0",
-        "info": {
-            "title": "The Shop API",
-            "version": "0.0.1"
-        },
-        "host": os.getenv("API_HOST", "localhost:5001"),
-        "basePath": "/api",
-        "schemes": [os.getenv("API_SCHEME", "http")]
-    }
+    "swagger": "2.0",
+    "info": {
+        "title": "The Shop API",
+        "version": "0.0.1",
+        "description": """
+        ## 🔐 Authentication
+        This API requires a Bearer token for protected endpoints.
+
+        **Demo Credentials:**  
+        Email: `user@demo.com`  
+        Password: `demo1234`
+
+        **Steps:**
+        1. Open **POST /login** below → click **Try it out** → **Execute**
+        2. Copy the `access_token` from the response
+        3. Click **Authorize** 🔓 at the top and paste: `Bearer YOUR_TOKEN`
+        """
+    },
+}
 
     Swagger(app, template=swagger_template)
 
