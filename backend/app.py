@@ -66,6 +66,7 @@ def create_app():
             'tagsSorter': 'alpha',
             'docExpansion': 'list',
             'defaultModelsExpandDepth': -1,
+            'syntaxHighlight': True,
         },
         'tags': [
             {'name': 'Authentication', 'description': 'Login, Logout, and Registration',},
@@ -106,17 +107,19 @@ def create_app():
         This API requires a Bearer token for protected endpoints.
 
         **Demo Credentials:**  
-        Email: `user@demo.com`  
-        Password: `demo1234`
+        {
+        "email": "user@demo.com",
+        "password": "demo1234"  
+        }
 
         **Steps:**
         1. Open **POST /login** below → click **Try it out** → **Execute**
-        2. Copy the `access_token` from the response
-        3. Click **Authorize** 🔓 at the top and paste: `Bearer YOUR_TOKEN`
+        2. Copy the details above and paste them into the request body → **Execute**
+        3. Copy the `access_token` from the response
+        4. Click **Authorize** 🔓 at the top and paste: `Bearer YOUR_TOKEN`
         """
     },
 }
-
     Swagger(app, template=swagger_template)
 
     # Initialize Mail
