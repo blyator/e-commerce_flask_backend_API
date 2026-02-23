@@ -24,8 +24,8 @@ def create_app():
     app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-        'pool_size': 20,
-        'max_overflow': 40,
+        'pool_size': 10,
+        'max_overflow': 20,
         'pool_timeout': 30,
         'pool_recycle': 1800,
         'pool_pre_ping': True,
@@ -158,4 +158,4 @@ app = create_app()
 celery_app = app.extensions["celery"]
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000)
