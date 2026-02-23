@@ -11,7 +11,8 @@ class BaseUser(HttpUser):
     """Base user class with authentication"""
     abstract = True
     wait_time = between(1, 3)
-    host = "http://127.0.0.1:5000"
+    # Pointing to the live domain
+    host = "https://serverdashboard.qzz.io"
     
     def on_start(self):
         """Login user at start of session"""
@@ -26,7 +27,8 @@ class BaseUser(HttpUser):
             "password": "demo1234"
         }
         
-        with self.client.post("/login", json=credentials, catch_response=True) as response:
+        # Added /shop-api prefix
+        with self.client.post("/shop-api/login", json=credentials, catch_response=True) as response:
             if response.status_code == 200:
                 data = response.json()
                 self.token = data.get("access_token")
@@ -43,7 +45,7 @@ class BrowsingUser(BaseUser):
     @task(10)
     def view_products(self):
         """Browse all products"""
-        self.client.get("/products/", headers=self._get_auth_headers())
+        self.client.get("/shop-api/products/", headers=self._get_auth_headers())
     
     @task(5)
     def view_products_with_filter(self):
@@ -53,17 +55,17 @@ class BrowsingUser(BaseUser):
             "category": random.choice(["all", "skincare", "makeup", "haircare"]),
             "sort": random.choice(["newest", "price-low", "price-high", "rating", "name"])
         }
-        self.client.get("/products/", params=params, headers=self._get_auth_headers())
+        self.client.get("/shop-api/products/", params=params, headers=self._get_auth_headers())
     
     @task(3)
     def view_categories(self):
         """View product categories"""
-        self.client.get("/products/categories", headers=self._get_auth_headers())
+        self.client.get("/shop-api/products/categories", headers=self._get_auth_headers())
     
     @task(2)
     def view_cart(self):
         """Check cart"""
-        self.client.get("/cart", headers=self._get_auth_headers())
+        self.client.get("/shop-api/cart", headers=self._get_auth_headers())
     
     def _get_auth_headers(self):
         """Return authorization headers"""
@@ -83,13 +85,12 @@ class ShoppingUser(BaseUser):
     @task(5)
     def view_products(self):
         """Browse products"""
-        self.client.get("/products/", headers=self._get_auth_headers())
+        self.client.get("/shop-api/products/", headers=self._get_auth_headers())
     
     @task(3)
     def add_to_cart(self):
         """Add random product to cart"""
-        # First get products to find valid IDs
-        response = self.client.get("/products/", headers=self._get_auth_headers())
+        response = self.client.get("/shop-api/products/", headers=self._get_auth_headers())
         if response.status_code == 200:
             products = response.json().get("products", [])
             if products:
@@ -101,7 +102,7 @@ class ShoppingUser(BaseUser):
                     "quantity": random.randint(1, 3)
                 }
                 
-                with self.client.post("/cart", json=cart_data, 
+                with self.client.post("/shop-api/cart", json=cart_data, 
                                     headers=self._get_auth_headers(), 
                                     catch_response=True) as resp:
                     if resp.status_code in [200, 201]:
@@ -112,13 +113,12 @@ class ShoppingUser(BaseUser):
     @task(2)
     def view_cart(self):
         """View cart contents"""
-        self.client.get("/cart", headers=self._get_auth_headers())
+        self.client.get("/shop-api/cart", headers=self._get_auth_headers())
     
     @task(1)
     def checkout(self):
         """Perform checkout (limited to avoid too many orders)"""
-        # Get cart first
-        cart_response = self.client.get("/cart", headers=self._get_auth_headers())
+        cart_response = self.client.get("/shop-api/cart", headers=self._get_auth_headers())
         
         if cart_response.status_code == 200:
             cart = cart_response.json()
@@ -134,13 +134,13 @@ class ShoppingUser(BaseUser):
                     }
                 }
                 
-                with self.client.post("/orders/checkout", json=shipping_info,
+                with self.client.post("/shop-api/orders/checkout", json=shipping_info,
                                     headers=self._get_auth_headers(),
                                     catch_response=True) as resp:
                     if resp.status_code == 201:
                         resp.success()
                         # Clear cart after successful checkout
-                        self.client.delete("/cart/clear", headers=self._get_auth_headers())
+                        self.client.delete("/shop-api/cart/clear", headers=self._get_auth_headers())
                     else:
                         resp.failure(f"Checkout failed: {resp.text}")
     
@@ -155,17 +155,18 @@ class AnonymousUser(HttpUser):
     """Anonymous user browsing without login"""
     weight = 1
     wait_time = between(2, 5)
-    host = "http://127.0.0.1:5000"
+    # Pointing to the live domain
+    host = "https://serverdashboard.qzz.io"
     
     @task(10)
     def view_public_products(self):
         """View products without authentication"""
-        self.client.get("/products/")
+        self.client.get("/shop-api/products/")
     
     @task(5)
     def view_public_categories(self):
         """View categories without authentication"""
-        self.client.get("/products/categories")
+        self.client.get("/shop-api/products/categories")
 
 
 # Event hooks for test metrics
