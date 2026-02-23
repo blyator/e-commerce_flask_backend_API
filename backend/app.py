@@ -96,7 +96,18 @@ def create_app():
     limiter.init_app(app)
     jwt.init_app(app)
     CORS(app, credentials=True)
-    Swagger(app)
+    swagger_template = {
+        "swagger": "2.0",
+        "info": {
+            "title": "The Shop API",
+            "version": "0.0.1"
+        },
+        "host": os.getenv("API_HOST", "localhost:5001"),
+        "basePath": "/api",
+        "schemes": [os.getenv("API_SCHEME", "http")]
+    }
+
+    Swagger(app, template=swagger_template)
 
     # Initialize Mail
     email(app)
