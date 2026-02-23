@@ -119,6 +119,10 @@ def create_app():
         4. Click **Authorize** 🔓 at the top and paste: `Bearer YOUR_TOKEN`
         """
     },
+    
+    "host": os.getenv("API_HOST", "localhost:5001"),
+    "basePath": "/api",
+    "schemes": [os.getenv("API_SCHEME", "http")]
 }
     Swagger(app, template=swagger_template)
 
