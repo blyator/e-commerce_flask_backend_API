@@ -40,6 +40,8 @@ services:
       - MAIL_USERNAME=${MAIL_USERNAME}
       - MAIL_PASSWORD=${MAIL_PASSWORD}
       - MAIL_DEFAULT_SENDER=${MAIL_DEFAULT_SENDER}
+      - API_HOST=${API_HOST}
+      - API_SCHEME=${API_SCHEME}
     depends_on:
       - db
       - redis
@@ -63,8 +65,6 @@ services:
       - MAIL_USERNAME=${MAIL_USERNAME}
       - MAIL_PASSWORD=${MAIL_PASSWORD}
       - MAIL_DEFAULT_SENDER=${MAIL_DEFAULT_SENDER}
-      - API_HOST=${API_HOST}
-      - API_SCHEME=${API_SCHEME}
     depends_on:
       - db
       - redis
