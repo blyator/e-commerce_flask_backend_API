@@ -57,38 +57,51 @@ def create_app():
     
     # Swagger config
     app.config['SWAGGER'] = {
-        'title': 'The Shop API',
-        'uiversion': 3,
-        'specs_route': '/apidocs/',
-        'ui_params': {
-            'apisSorter': 'alpha',
-            'operationsSorter': 'alpha',
-            'tagsSorter': 'alpha',
-            'docExpansion': 'list',
-            'defaultModelsExpandDepth': -1,
-        },
-        'tags': [
-            {'name': 'Authentication', 'description': 'Login, Logout, and Registration',},
-            {'name': 'Products', 'description': 'Product catalog management'},
-            {'name': 'Categories', 'description': 'Product categories'},
-            {'name': 'Cart', 'description': 'User shopping cart'},
-            {'name': 'Orders', 'description': 'Order processing and history'},
-            {'name': 'Users', 'description': 'User account and management'}
-        ],
-        'securityDefinitions': {
-            'Bearer': {
-                'type': 'apiKey',
-                'name': 'Authorization',
-                'in': 'header',
-                'description': 'Login then Paste token with format: Bearer {token}'
-            }
-        },
-        'security': [
-            {
-                'Bearer': []
-            }
-        ]
-    }
+    'title': 'The Shop API',
+    'uiversion': 3,
+    'specs_route': '/apidocs/',
+    'ui_params': {
+        'apisSorter': 'alpha',
+        'operationsSorter': 'alpha',
+        'tagsSorter': 'alpha',
+        'docExpansion': 'list',
+        'defaultModelsExpandDepth': -1,
+        'onComplete': '''function() {
+            fetch("/api/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ email: "user@demo.com", password: "demo1234" })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.access_token) {
+                    ui.preauthorizeApiKey("Bearer", "Bearer " + data.access_token);
+                }
+            });
+        }'''
+    },
+    'tags': [
+        {'name': 'Authentication', 'description': 'Login, Logout, and Registration'},
+        {'name': 'Products', 'description': 'Product catalog management'},
+        {'name': 'Categories', 'description': 'Product categories'},
+        {'name': 'Cart', 'description': 'User shopping cart'},
+        {'name': 'Orders', 'description': 'Order processing and history'},
+        {'name': 'Users', 'description': 'User account and management'}
+    ],
+    'securityDefinitions': {
+        'Bearer': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header',
+            'description': 'Login then Paste token with format: Bearer {token}'
+        }
+    },
+    'security': [
+        {
+            'Bearer': []
+        }
+    ]
+}
 
     db.init_app(app)
     migrate.init_app(app, db)
