@@ -13,6 +13,14 @@ pipeline {
             }
         }
 
+        stage('Lint') {
+            steps {
+                sh "pip install -r tests/lint/requirements.txt"
+                sh "isort backend/ --check-only --diff"
+                sh "black backend/ --check --diff"
+            }
+        }
+
         stage('Sync to /var/www') {
             steps {
                 echo "Syncing workspace to ${DEPLOY_PATH}..."
