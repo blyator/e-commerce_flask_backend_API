@@ -15,10 +15,15 @@ pipeline {
 
         stage('Lint') {
             steps {
-                sh "python3 -m pip install -r tests/lint/requirements.txt"
-                sh "python3 -m pip install black isort"
-                sh "isort backend/ --check-only --diff"
-                sh "black backend/ --check --diff"
+                sh '''
+                    python3 -m venv ci-venv
+                    
+                    . ci-venv/bin/activate
+                    pip install -r tests/lint/requirements.txt
+                    pip install black isort
+                    isort backend/ --check-only --diff
+                    black backend/ --check --diff
+                '''
             }
         }
 
