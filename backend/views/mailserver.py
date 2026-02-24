@@ -6,19 +6,20 @@ from tasks import send_celery_email
 
 
 def email(app):
-    app.config['MAIL_SERVER'] = 'smtp.gmail.com'
-    app.config['MAIL_PORT'] = 587
-    app.config['MAIL_USE_TLS'] = True
-    app.config['MAIL_USE_SSL'] = False
-    app.config['MAIL_USERNAME'] = 'demajor45@gmail.com'
-    app.config['MAIL_PASSWORD'] = 'wnpc ygqz xnzm ckia'
-    app.config['MAIL_DEFAULT_SENDER'] = 'demajor45@gmail.com'
-    
+    app.config["MAIL_SERVER"] = "smtp.gmail.com"
+    app.config["MAIL_PORT"] = 587
+    app.config["MAIL_USE_TLS"] = True
+    app.config["MAIL_USE_SSL"] = False
+    app.config["MAIL_USERNAME"] = "demajor45@gmail.com"
+    app.config["MAIL_PASSWORD"] = "wnpc ygqz xnzm ckia"
+    app.config["MAIL_DEFAULT_SENDER"] = "demajor45@gmail.com"
+
     mail.init_app(app)
+
 
 def send_email(name, email):
     subject = "Welcome to The Shop"
-    
+
     html_body = f"""
     <html>
         <body style="font-family: Arial, sans-serif; background-color: #fff0f5; color: #3a0c1a; padding: 20px; line-height: 1.6;">
@@ -52,7 +53,7 @@ def send_email(name, email):
         </body>
     </html>
     """
-    
+
     text_body = f"""
     Hello {name},
     
@@ -67,12 +68,13 @@ def send_email(name, email):
     With love,
     The Shop Team 
     """
-    
+
     send_celery_email.delay(subject, [email], html_body, text_body)
+
 
 def send_reset_email(email, reset_url):
     subject = "Reset Your Password - The Shop"
-    
+
     html_body = f"""
     <html>
         <body style="font-family: Arial, sans-serif; background-color: #fff0f5; color: #3a0c1a; padding: 20px; line-height: 1.6;">
@@ -108,7 +110,7 @@ def send_reset_email(email, reset_url):
         </body>
     </html>
     """
-    
+
     text_body = f"""
     Hello,
     
@@ -124,23 +126,28 @@ def send_reset_email(email, reset_url):
     With care,
     The Shop Team 
     """
-    
+
     send_celery_email.delay(subject, [email], html_body, text_body)
 
-def send_order_confirmation_email(name, email, order):     
 
-    subject = f"Order Confirmation - #{order['id']} | The Shop"      
-    
+def send_order_confirmation_email(name, email, order):
 
-    html_items = ''.join(f"<li>{item['quantity']} x {item['name']} - Ksh {item['price']:.2f} each = Ksh {(item['price'] * item['quantity']):.2f}</li>" for item in order['items'])          
-    
-    newline = '\n'
-    text_items = ''.join(f"- {item['quantity']} x {item['name']} - Ksh {item['price']:.2f} each = Ksh {(item['price'] * item['quantity']):.2f}{newline}" for item in order['items'])      
+    subject = f"Order Confirmation - #{order['id']} | The Shop"
 
+    html_items = "".join(
+        f"<li>{item['quantity']} x {item['name']} - Ksh {item['price']:.2f} each = Ksh {(item['price'] * item['quantity']):.2f}</li>"
+        for item in order["items"]
+    )
 
-    subtotal = sum(item['price'] * item['quantity'] for item in order['items'])
-    shipping_cost = order.get('shipping_cost', 0)
-    
+    newline = "\n"
+    text_items = "".join(
+        f"- {item['quantity']} x {item['name']} - Ksh {item['price']:.2f} each = Ksh {(item['price'] * item['quantity']):.2f}{newline}"
+        for item in order["items"]
+    )
+
+    subtotal = sum(item["price"] * item["quantity"] for item in order["items"])
+    shipping_cost = order.get("shipping_cost", 0)
+
     html_body = f"""     
     <html>         
         <body style="font-family: Arial, sans-serif; background-color: #ffffff; color: #3a0c1a; padding: 20px; line-height: 1.6;">             
@@ -181,7 +188,7 @@ def send_order_confirmation_email(name, email, order):
             
         </body>     
     </html>     
-    """      
+    """
 
     text_body = f"""Hi {name},  
 
@@ -211,9 +218,10 @@ Email: support@theshop.co.ke
 Phone: +254 700 000 000
 
 With love, 
-The Shop Team 💖"""      
+The Shop Team 💖"""
 
     send_celery_email.delay(subject, [email], html_body, text_body)
+
 
 def send_manager_invite_email(name, email, is_existing_user=False, password=None):
 

@@ -5,10 +5,10 @@ from models import Order, User, db
 from views.mailserver import send_manager_invite_email
 from werkzeug.security import check_password_hash, generate_password_hash
 
-user_bp = Blueprint('user', __name__, url_prefix='/users')
+user_bp = Blueprint("user", __name__, url_prefix="/users")
 
 
-@user_bp.route('', methods=['GET'])
+@user_bp.route("", methods=["GET"])
 @jwt_required()
 def get_all_users():
     """
@@ -25,13 +25,13 @@ def get_all_users():
         description: Admin only
     """
     identity = get_jwt_identity()
-    if identity['role'] != 'admin':
+    if identity["role"] != "admin":
         return jsonify({"error": "Admin only"}), 403
     users = User.query.all()
     return jsonify({"users": [u.to_dict() for u in users]})
 
 
-@user_bp.route('/<int:id>/block', methods=['PATCH'])
+@user_bp.route("/<int:id>/block", methods=["PATCH"])
 @jwt_required()
 def toggle_block_user(id):
     """
@@ -55,24 +55,24 @@ def toggle_block_user(id):
         description: Invalid user information
     """
     identity = get_jwt_identity()
-    if identity['role'] != 'admin':
+    if identity["role"] != "admin":
         return jsonify({"error": "Admin only"}), 403
 
     user = User.query.get(id)
     if not user:
         return jsonify({"error": "Invalid user information"}), 404
-        
+
     user.blocked = not user.blocked
     db.session.commit()
 
     status = "blocked" if user.blocked else "unblocked"
-    return jsonify({
-        "message": f"User {status} successfully",
-        "user": user.to_dict()
-    }), 200
+    return (
+        jsonify({"message": f"User {status} successfully", "user": user.to_dict()}),
+        200,
+    )
 
 
-@user_bp.route('/<int:id>', methods=['DELETE'])
+@user_bp.route("/<int:id>", methods=["DELETE"])
 @jwt_required()
 def delete_user(id):
     """
@@ -96,7 +96,7 @@ def delete_user(id):
         description: Invalid user information
     """
     identity = get_jwt_identity()
-    if identity['role'] != 'admin':
+    if identity["role"] != "admin":
         return jsonify({"error": "Admin only"}), 403
 
     user = User.query.get(id)
@@ -109,7 +109,7 @@ def delete_user(id):
     return jsonify({"message": f"User with ID {id} deleted successfully."}), 200
 
 
-@user_bp.route('/create-manager', methods=['POST'])
+@user_bp.route("/create-manager", methods=["POST"])
 @jwt_required()
 def create_manager():
     """
@@ -139,11 +139,11 @@ def create_manager():
         description: Admin only
     """
     identity = get_jwt_identity()
-    if identity['role'] != 'admin':
+    if identity["role"] != "admin":
         return jsonify({"error": "Admin only"}), 403
 
     data = request.get_json()
-    email = data.get('email')
+    email = data.get("email")
 
     if not email:
         return jsonify({"error": "Email is required"}), 400
@@ -151,43 +151,51 @@ def create_manager():
     user = User.query.filter_by(email=email).first()
 
     if user:
-        user.role = 'manager'
+        user.role = "manager"
         db.session.commit()
 
-        send_manager_invite_email(name=user.username, email=email, is_existing_user=True)
+        send_manager_invite_email(
+            name=user.username, email=email, is_existing_user=True
+        )
 
-        return jsonify({
-            "message": f"User '{email}' role updated to manager.",
-            "user": user.to_dict()
-        }), 200
+        return (
+            jsonify(
+                {
+                    "message": f"User '{email}' role updated to manager.",
+                    "user": user.to_dict(),
+                }
+            ),
+            200,
+        )
 
     default_password = "manager@thebeauty"
     hashed_password = generate_password_hash(default_password)
 
-    username = email.split('@')[0]
+    username = email.split("@")[0]
 
     new_user = User(
-        username=username,
-        email=email,
-        password_hash=hashed_password,
-        role='manager'
+        username=username, email=email, password_hash=hashed_password, role="manager"
     )
     db.session.add(new_user)
     db.session.commit()
 
-    send_manager_invite_email(name=username, email=email, is_existing_user=False, password=default_password)
+    send_manager_invite_email(
+        name=username, email=email, is_existing_user=False, password=default_password
+    )
 
-    return jsonify({
-        "message": f"Manager account created for {email}",
-        "default_password": default_password,
-        "user": new_user.to_dict()
-    }), 201
+    return (
+        jsonify(
+            {
+                "message": f"Manager account created for {email}",
+                "default_password": default_password,
+                "user": new_user.to_dict(),
+            }
+        ),
+        201,
+    )
 
 
-
-
-
-@user_bp.route('/delete', methods=['DELETE'])
+@user_bp.route("/delete", methods=["DELETE"])
 @jwt_required()
 def delete_account():
     """
@@ -214,7 +222,6 @@ def delete_account():
         Order.query.filter_by(user_id=user_id).update({"user_id": None})
         db.session.commit()
 
-
         db.session.delete(user)
         db.session.commit()
 
@@ -223,8 +230,6 @@ def delete_account():
     except Exception as e:
         db.session.rollback()
         return jsonify({"error": f"Failed to delete account: {str(e)}"}), 500
-    
-
 
 
 @user_bp.route("/change-password", methods=["PATCH"])
@@ -273,7 +278,6 @@ def change_password():
     if not current_password or not new_password:
         return jsonify({"error": "Both current and new passwords are required"}), 400
 
-
     if not check_password_hash(user.password_hash, current_password):
         return jsonify({"error": "Current password is incorrect"}), 400
 
@@ -281,5 +285,3 @@ def change_password():
     db.session.commit()
 
     return jsonify({"message": "Password updated successfully"}), 200
-
-

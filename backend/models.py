@@ -12,19 +12,24 @@ jwt = JWTManager()
 ROLE_CHOICES = ("admin", "order_manager", "customer")
 ORDER_STATUS_CHOICES = ("Pending", "Processing", "Shipped", "Delivered")
 
+
 class User(db.Model):
-    __tablename__ = 'users'
+    __tablename__ = "users"
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.Text, nullable=False)
-    role = db.Column(db.String(10), nullable=False, default='customer')
-    blocked= db.Column(db.Boolean, default=False)
+    role = db.Column(db.String(10), nullable=False, default="customer")
+    blocked = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     # Relationships
-    cart_items    = db.relationship("CartItem", back_populates="user", cascade="all, delete-orphan")
-    orders        = db.relationship("Order",     back_populates="user", cascade="all, delete-orphan")
+    cart_items = db.relationship(
+        "CartItem", back_populates="user", cascade="all, delete-orphan"
+    )
+    orders = db.relationship(
+        "Order", back_populates="user", cascade="all, delete-orphan"
+    )
 
     def to_dict(self):
         return {
@@ -33,8 +38,9 @@ class User(db.Model):
             "email": self.email,
             "role": self.role,
             "blocked": self.blocked,
-            "created_at": self.created_at.isoformat()
+            "created_at": self.created_at.isoformat(),
         }
+
 
 class Category(db.Model):
     __tablename__ = "categories"
@@ -45,7 +51,9 @@ class Category(db.Model):
     icon = db.Column(db.String(20))
 
     # Relationship
-    products = db.relationship("Product", back_populates="category", cascade="all, delete-orphan")
+    products = db.relationship(
+        "Product", back_populates="category", cascade="all, delete-orphan"
+    )
 
     def to_dict(self):
         return {
@@ -53,11 +61,12 @@ class Category(db.Model):
             "name": self.name,
             "label": self.label,
             "icon": self.icon,
-            "products": [product.to_dict() for product in self.products]
+            "products": [product.to_dict() for product in self.products],
         }
 
+
 class Product(db.Model):
-    __tablename__ = 'products'
+    __tablename__ = "products"
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), nullable=False)
@@ -68,12 +77,17 @@ class Product(db.Model):
     rating = db.Column(db.Float, default=0.0)
     reviews = db.Column(db.Integer, default=0)
 
-    
-    category_id = db.Column(db.Integer, db.ForeignKey('categories.id'), nullable=False)    # Relationship to access category info from product
+    category_id = db.Column(
+        db.Integer, db.ForeignKey("categories.id"), nullable=False
+    )  # Relationship to access category info from product
     category = db.relationship("Category", back_populates="products")
-    
-    cart_items = db.relationship("CartItem", back_populates="product", cascade="all, delete-orphan")
-    order_items = db.relationship("OrderItem", back_populates="product", cascade="all, delete-orphan")
+
+    cart_items = db.relationship(
+        "CartItem", back_populates="product", cascade="all, delete-orphan"
+    )
+    order_items = db.relationship(
+        "OrderItem", back_populates="product", cascade="all, delete-orphan"
+    )
 
     def to_dict(self):
         return {
@@ -92,14 +106,14 @@ class Product(db.Model):
 class CartItem(db.Model):
     __tablename__ = "cart_items"
 
-    id          = db.Column(db.Integer, primary_key=True)
-    quantity    = db.Column(db.Integer, nullable=False)
-    user_id     = db.Column(db.Integer, db.ForeignKey("users.id"))
-    product_id  = db.Column(db.Integer, db.ForeignKey("products.id"))
+    id = db.Column(db.Integer, primary_key=True)
+    quantity = db.Column(db.Integer, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
+    product_id = db.Column(db.Integer, db.ForeignKey("products.id"))
 
     # Relationships
-    user        = db.relationship("User", back_populates="cart_items")
-    product     = db.relationship("Product", back_populates="cart_items")
+    user = db.relationship("User", back_populates="cart_items")
+    product = db.relationship("Product", back_populates="cart_items")
 
     def to_dict(self):
         return {
@@ -107,8 +121,9 @@ class CartItem(db.Model):
             "quantity": self.quantity,
             "user_id": self.user_id,
             "product_id": self.product_id,
-            "product": self.product.to_dict() if self.product else None
+            "product": self.product.to_dict() if self.product else None,
         }
+
 
 class Order(db.Model):
     __tablename__ = "orders"
@@ -121,7 +136,9 @@ class Order(db.Model):
     total_price = db.Column(db.Float, nullable=False)
 
     user = db.relationship("User", back_populates="orders")
-    order_items = db.relationship("OrderItem", back_populates="order", cascade="all, delete-orphan")
+    order_items = db.relationship(
+        "OrderItem", back_populates="order", cascade="all, delete-orphan"
+    )
     invoice = db.relationship("Invoice", back_populates="order", uselist=False)
 
     def to_dict(self):
@@ -134,7 +151,9 @@ class Order(db.Model):
             "user": self.user.username if self.user else None,
             "createdAt": self.created_at.isoformat(),
             "status": self.status.lower(),
-            "subtotal": float(sum(item.price_at_order * item.quantity for item in self.order_items)),
+            "subtotal": float(
+                sum(item.price_at_order * item.quantity for item in self.order_items)
+            ),
             "shipping": float(shipping_cost),
             "total": float(self.total_price),
             "shippingInfo": {
@@ -153,23 +172,22 @@ class Order(db.Model):
                     "price": float(item.price_at_order),
                 }
                 for item in self.order_items
-            ]
+            ],
         }
-
 
 
 class OrderItem(db.Model):
     __tablename__ = "order_items"
 
-    id             = db.Column(db.Integer, primary_key=True)
-    quantity       = db.Column(db.Integer, nullable=False)
-    price_at_order = db.Column(db.Float,   nullable=False)
-    order_id       = db.Column(db.Integer, db.ForeignKey("orders.id"))
-    product_id     = db.Column(db.Integer, db.ForeignKey("products.id"))
+    id = db.Column(db.Integer, primary_key=True)
+    quantity = db.Column(db.Integer, nullable=False)
+    price_at_order = db.Column(db.Float, nullable=False)
+    order_id = db.Column(db.Integer, db.ForeignKey("orders.id"))
+    product_id = db.Column(db.Integer, db.ForeignKey("products.id"))
 
     # Relationships
-    order          = db.relationship("Order", back_populates="order_items")
-    product        = db.relationship("Product", back_populates="order_items")
+    order = db.relationship("Order", back_populates="order_items")
+    product = db.relationship("Product", back_populates="order_items")
 
     def to_dict(self):
         return {
@@ -178,20 +196,21 @@ class OrderItem(db.Model):
             "price_at_order": self.price_at_order,
             "order_id": self.order_id,
             "product_id": self.product_id,
-            "product": self.product.to_dict() if self.product else None
+            "product": self.product.to_dict() if self.product else None,
         }
+
 
 class Invoice(db.Model):
     __tablename__ = "invoices"
 
-    id             = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
     invoice_number = db.Column(db.String(100), unique=True, nullable=False)
-    issued_at      = db.Column(db.DateTime, default=datetime.utcnow)
-    pdf_url        = db.Column(db.String(255))
-    order_id       = db.Column(db.Integer, db.ForeignKey("orders.id"), unique=True)
+    issued_at = db.Column(db.DateTime, default=datetime.utcnow)
+    pdf_url = db.Column(db.String(255))
+    order_id = db.Column(db.Integer, db.ForeignKey("orders.id"), unique=True)
 
     # Relationships
-    order          = db.relationship("Order", back_populates="invoice", uselist=False)
+    order = db.relationship("Order", back_populates="invoice", uselist=False)
 
     def to_dict(self):
         return {
@@ -200,7 +219,6 @@ class Invoice(db.Model):
             "issued_at": self.issued_at.isoformat(),
             "pdf_url": self.pdf_url,
             "order_id": self.order_id,
-            
         }
 
 

@@ -4,9 +4,10 @@ from flask_jwt_extended import get_jwt_identity, jwt_required
 from models import Category, Product, db
 from sqlalchemy.orm import joinedload
 
-product_bp = Blueprint('product', __name__, url_prefix='/products')
+product_bp = Blueprint("product", __name__, url_prefix="/products")
 
-@product_bp.route('/', methods=['GET'])
+
+@product_bp.route("/", methods=["GET"])
 @cache.cached(timeout=300, query_string=True)
 @limiter.limit("2000 per minute")
 def get_products():
@@ -57,8 +58,8 @@ def get_products():
 
     if search:
         query = query.filter(
-            (Product.name.ilike(f"%{search}%")) |
-            (Product.description.ilike(f"%{search}%"))
+            (Product.name.ilike(f"%{search}%"))
+            | (Product.description.ilike(f"%{search}%"))
         )
 
     sort_map = {
@@ -72,20 +73,21 @@ def get_products():
     query = query.order_by(sort_criteria)
 
     pagination = query.paginate(page=page, per_page=per_page, error_out=False)
-    
-    return jsonify({
-        "products": [p.to_dict() for p in pagination.items],
-        "total": pagination.total,
-        "pages": pagination.pages,
-        "current_page": pagination.page,
-        "per_page": pagination.per_page,
-        "has_next": pagination.has_next,
-        "has_prev": pagination.has_prev
-    })
+
+    return jsonify(
+        {
+            "products": [p.to_dict() for p in pagination.items],
+            "total": pagination.total,
+            "pages": pagination.pages,
+            "current_page": pagination.page,
+            "per_page": pagination.per_page,
+            "has_next": pagination.has_next,
+            "has_prev": pagination.has_prev,
+        }
+    )
 
 
-
-@product_bp.route('/', methods=['POST'])
+@product_bp.route("/", methods=["POST"])
 @jwt_required()
 def add_product():
     """
@@ -127,37 +129,37 @@ def add_product():
         description: Permission denied
     """
     user = get_jwt_identity()
-    if user['role'] != 'admin' and user['role'] != 'manager':
+    if user["role"] != "admin" and user["role"] != "manager":
         return jsonify({"error": "Permission denied"}), 403
 
     data = request.get_json()
 
-    required_fields = ['name', 'price', 'category_id']
+    required_fields = ["name", "price", "category_id"]
     for field in required_fields:
         if field not in data:
             return jsonify({"error": f"{field} is required"}), 400
 
     new_product = Product(
-        name=data['name'],
-        price=data['price'],
-        category_id=data['category_id'],
-        image=data.get('image'),
-        description=data.get('description'),
-        in_stock=data.get('in_stock', True),
-        rating=data.get('rating', 0.0),
-        reviews=data.get('reviews', 0),
+        name=data["name"],
+        price=data["price"],
+        category_id=data["category_id"],
+        image=data.get("image"),
+        description=data.get("description"),
+        in_stock=data.get("in_stock", True),
+        rating=data.get("rating", 0.0),
+        reviews=data.get("reviews", 0),
     )
 
     db.session.add(new_product)
     db.session.commit()
 
     # Invalidate products cache
-    cache.delete('view//products/')
+    cache.delete("view//products/")
 
     return jsonify(new_product.to_dict()), 201
 
 
-@product_bp.route('/categories', methods=['GET'])
+@product_bp.route("/categories", methods=["GET"])
 def get_categories():
     """
     Get all categories
@@ -169,18 +171,15 @@ def get_categories():
         description: List of categories
     """
     categories = Category.query.all()
-    return jsonify([
-        {
-            "id": c.id,
-            "name": c.name,
-            "label": c.label,
-            "icon": c.icon
-        }
-        for c in categories
-    ])
+    return jsonify(
+        [
+            {"id": c.id, "name": c.name, "label": c.label, "icon": c.icon}
+            for c in categories
+        ]
+    )
 
 
-@product_bp.route('/<int:id>', methods=['PUT'])
+@product_bp.route("/<int:id>", methods=["PUT"])
 @jwt_required()
 def update_product(id):
     """
@@ -223,25 +222,23 @@ def update_product(id):
     """
     identity = get_jwt_identity()
 
-    if identity['role'] not in ['admin', 'manager']:
+    if identity["role"] not in ["admin", "manager"]:
         return jsonify({"error": "Permission denied"}), 403
 
     product = Product.query.get_or_404(id)
     data = request.get_json()
-    for field in ['name', 'description', 'price', 'in_stock', 'image', 'category_id']:
+    for field in ["name", "description", "price", "in_stock", "image", "category_id"]:
         if field in data:
             setattr(product, field, data[field])
     db.session.commit()
 
     # Invalidate products cache
-    cache.delete('view//products/')
+    cache.delete("view//products/")
 
     return jsonify(product.to_dict())
 
 
-
-
-@product_bp.route('/<int:id>', methods=['DELETE'])
+@product_bp.route("/<int:id>", methods=["DELETE"])
 @jwt_required()
 def delete_product(id):
     """
@@ -269,9 +266,12 @@ def delete_product(id):
         print("JWT Identity:", identity, "| Type:", type(identity))
 
         if not isinstance(identity, dict):
-            return jsonify({"error": "Invalid token format - identity must be a dict"}), 401
+            return (
+                jsonify({"error": "Invalid token format - identity must be a dict"}),
+                401,
+            )
 
-        if identity.get('role') not in ['admin', 'manager']:
+        if identity.get("role") not in ["admin", "manager"]:
             return jsonify({"error": "Permission denied"}), 403
 
         product = Product.query.get_or_404(id)
@@ -279,7 +279,7 @@ def delete_product(id):
         db.session.commit()
 
         # Invalidate products cache
-        cache.delete('view//products/')
+        cache.delete("view//products/")
 
         return jsonify({"message": "Product deleted"}), 200
 
