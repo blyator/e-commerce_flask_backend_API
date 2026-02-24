@@ -1,7 +1,7 @@
-from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity
-from models import db, Product, Category
 from extensions import cache, limiter
+from flask import Blueprint, jsonify, request
+from flask_jwt_extended import get_jwt_identity, jwt_required
+from models import Category, Product, db
 from sqlalchemy.orm import joinedload
 
 product_bp = Blueprint('product', __name__, url_prefix='/products')

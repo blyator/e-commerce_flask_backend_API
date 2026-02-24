@@ -1,6 +1,7 @@
-from flask_sqlalchemy import SQLAlchemy
-from flask_jwt_extended import JWTManager
 from datetime import datetime
+
+from flask_jwt_extended import JWTManager
+from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import MetaData, Text
 from sqlalchemy.dialects.postgresql import JSON
 

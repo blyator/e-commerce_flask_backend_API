@@ -1,16 +1,16 @@
-from flask import Flask, jsonify
-from flask_migrate import Migrate
-from flask_cors import CORS
-from flasgger import Swagger
-from models import db, TokenBlocklist, jwt
-from extensions import cache, limiter
-from celery_app import celery_init_app
-from views import auth_bp, user_bp, product_bp, order_bp, category_bp, cart_bp
-from views.mailserver import email
-from dotenv import load_dotenv
 import os
 from datetime import timedelta
 
+from celery_app import celery_init_app
+from dotenv import load_dotenv
+from extensions import cache, limiter
+from flasgger import Swagger
+from flask import Flask, jsonify
+from flask_cors import CORS
+from flask_migrate import Migrate
+from models import TokenBlocklist, db, jwt
+from views import auth_bp, cart_bp, category_bp, order_bp, product_bp, user_bp
+from views.mailserver import email
 
 migrate = Migrate()
 

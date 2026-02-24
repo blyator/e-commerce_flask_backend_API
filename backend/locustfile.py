@@ -2,8 +2,9 @@
 Load Testing Suite for The Shop API
 Tests authentication, product browsing, cart operations, and checkout flows
 """
-from locust import HttpUser, task, between, events
 import random
+
+from locust import HttpUser, between, events, task
 
 
 class BaseUser(HttpUser):

@@ -1,7 +1,9 @@
-from flask_mail import Message
-from extensions import mail
 import os
+
+from extensions import mail
+from flask_mail import Message
 from tasks import send_celery_email
+
 
 def email(app):
     app.config['MAIL_SERVER'] = 'smtp.gmail.com'

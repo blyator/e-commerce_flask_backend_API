@@ -1,18 +1,14 @@
-from flask import Blueprint, request, jsonify
-from werkzeug.security import generate_password_hash, check_password_hash
-from flask_jwt_extended import (
-    create_access_token,
-    jwt_required,
-    get_jwt_identity,
-    get_jwt,
-    JWTManager,
-    verify_jwt_in_request
-)
 from datetime import datetime, timezone
 from functools import wraps
-from models import db, User, TokenBlocklist, jwt
-from views.mailserver import send_email
+
 from extensions import limiter
+from flask import Blueprint, jsonify, request
+from flask_jwt_extended import (JWTManager, create_access_token, get_jwt,
+                                get_jwt_identity, jwt_required,
+                                verify_jwt_in_request)
+from models import TokenBlocklist, User, db, jwt
+from views.mailserver import send_email
+from werkzeug.security import check_password_hash, generate_password_hash
 
 auth_bp = Blueprint('auth', __name__)
 

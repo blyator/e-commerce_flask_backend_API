@@ -1,12 +1,9 @@
 from flask import Blueprint, jsonify, request
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import get_jwt_identity, jwt_required
 from flask_mail import Message
-from werkzeug.security import generate_password_hash, check_password_hash
+from models import Order, User, db
 from views.mailserver import send_manager_invite_email
-from models import db, User, Order
-
-
-
+from werkzeug.security import check_password_hash, generate_password_hash
 
 user_bp = Blueprint('user', __name__, url_prefix='/users')
 

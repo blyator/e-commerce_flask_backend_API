@@ -1,6 +1,7 @@
 from celery import shared_task
-from flask_mail import Message
 from extensions import mail
+from flask_mail import Message
+
 
 @shared_task(ignore_result=True)
 def send_celery_email(subject, recipients, html, body):

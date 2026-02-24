@@ -1,11 +1,12 @@
 # routes/cart.py
-from flask import Blueprint, request, jsonify
-from flask_jwt_extended import jwt_required, get_jwt_identity
-from models import db, CartItem, Product
 from extensions import cache
+from flask import Blueprint, jsonify, request
+from flask_jwt_extended import get_jwt_identity, jwt_required
+from models import CartItem, Product, db
 
 cart_bp = Blueprint('cart', __name__, url_prefix='/cart')
 from sqlalchemy.orm import joinedload
+
 
 def make_cart_cache_key(*args, **kwargs):
     user_identity = get_jwt_identity()
