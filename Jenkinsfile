@@ -15,7 +15,8 @@ pipeline {
 
         stage('Lint') {
             steps {
-                sh "pip install -r tests/lint/requirements.txt"
+                sh "python3 -m pip install -r tests/lint/requirements.txt"
+                sh "python3 -m pip install black isort"
                 sh "isort backend/ --check-only --diff"
                 sh "black backend/ --check --diff"
             }
