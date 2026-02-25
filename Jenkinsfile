@@ -29,14 +29,21 @@ pipeline {
         stage('Test') {
             steps {
                 sh '''
-                    # Run tests 
-                    docker compose -f ${COMPOSE_TEST} run --rm sut
+                    docker compose -f ${COMPOSE_TEST} run --name sut_container sut
                 '''
             }
             post {
                 always {
-                    junit 'backend/test-results.xml'
-                    // Cleanup test containers but keep images for cache
+                    script {
+                        try {
+                            sh "docker cp sut_container:/app/test-results.xml backend/test-results.xml"
+                            junit 'backend/test-results.xml'
+                        } catch (e) {
+                            echo "Could not copy test results: ${e.message}"
+                        }
+                    }
+                    // Cleanup
+                    sh "docker rm -f sut_container || true"
                     sh "docker compose -f ${COMPOSE_TEST} down"
                 }
             }

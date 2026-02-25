@@ -33,5 +33,3 @@ services:
         condition: service_healthy
       test-redis:
         condition: service_healthy
-    volumes:
-      - ./backend:/app
