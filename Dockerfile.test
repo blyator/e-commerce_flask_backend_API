@@ -1,0 +1,22 @@
+FROM python:3.11-slim
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV FLASK_ENV=testing
+
+WORKDIR /app
+
+# Install all dependencies including dev/test tools
+COPY backend/requirements-dev.txt ./requirements-dev.txt
+COPY backend/requirements.txt ./requirements.txt
+RUN pip install --no-cache-dir -r requirements-dev.txt
+
+# Copy the backend source code and tests
+COPY backend/ .
+
+# The context will be /app, so tests are at /app/tests
+# We set PYTHONPATH to ensure app imports work correctly
+ENV PYTHONPATH=/app
+
+CMD ["pytest", "tests/", "-v", "--junitxml=test-results.xml"]
