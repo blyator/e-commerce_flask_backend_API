@@ -36,7 +36,7 @@ pipeline {
             post {
                 always {
                     junit 'backend/test-results.xml'
-                    # Cleanup test containers but keep images for cache
+                    // Cleanup test containers but keep images for cache
                     sh "docker compose -f ${COMPOSE_TEST} down"
                 }
             }
