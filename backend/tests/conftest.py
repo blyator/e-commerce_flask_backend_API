@@ -17,11 +17,14 @@ def app():
     app = create_app()
     app.config["TESTING"] = True
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+    app.config["RATELIMIT_ENABLED"] = False
+    app.config["CELERY_TASK_ALWAYS_EAGER"] = True
 
     with app.app_context():
         _db.create_all()
         yield app
-        _db.drop_all()
+        _db.session.remove()
+        _db.engine.dispose()
 
 
 @pytest.fixture

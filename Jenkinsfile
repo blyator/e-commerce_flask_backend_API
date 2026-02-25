@@ -2,9 +2,10 @@ pipeline {
     agent any
 
     environment {
-        DEPLOY_PATH = "/var/www/flask-ecommerce-API"
-        COMPOSE_TEST = "docker-compose.test.yml"
-        COMPOSE_PROD = "docker-compose.yml"
+        DEPLOY_PATH    = "/var/www/flask-ecommerce-API"
+        COMPOSE_TEST   = "docker-compose.test.yml"
+        COMPOSE_PROD   = "docker-compose.yml"
+        TEST_CONTAINER = "test-container"
     }
 
     stages {
@@ -14,37 +15,46 @@ pipeline {
             }
         }
 
-        stage('Lint') {
+        stage('Teardown Previous Run') {
+            environment { COMPOSE_PROJECT_NAME = "flask-ecommerce-api-test" }
+            steps {
+                echo "Deleting previous test containers..."
+                sh '''
+                    docker rm -f ${TEST_CONTAINER} || true
+                    docker compose -f ${COMPOSE_TEST} down -v --remove-orphans || true
+                '''
+            }
+        }
+
+        stage('Build & Lint') {
+            environment { COMPOSE_PROJECT_NAME = "flask-ecommerce-api-test" }
             steps {
                 sh '''
                     docker compose -f ${COMPOSE_TEST} build sut
-                    docker compose -f ${COMPOSE_TEST} run --rm sut sh -c "
-                        isort . --check-only --diff && \
-                        black . --check --diff
-                    "
+                    docker compose -f ${COMPOSE_TEST} up -d test-db test-redis
+                    docker compose -f ${COMPOSE_TEST} run -T --rm sut \
+                        sh -c "isort . --check-only --diff && black . --check --diff"
                 '''
             }
         }
 
         stage('Test') {
+            environment { COMPOSE_PROJECT_NAME = "flask-ecommerce-api-test" }
             steps {
                 sh '''
-                    docker compose -f ${COMPOSE_TEST} run --name sut_container sut
+                    docker compose -f ${COMPOSE_TEST} run -T --name ${TEST_CONTAINER} sut
                 '''
             }
             post {
                 always {
                     script {
                         try {
-                            sh "docker cp sut_container:/app/test-results.xml backend/test-results.xml"
+                            sh "docker cp ${TEST_CONTAINER}:/app/test-results.xml ./backend/test-results.xml"
                             junit 'backend/test-results.xml'
                         } catch (e) {
-                            echo "Could not copy test results: ${e.message}"
+                            echo "Could not collect test results: ${e.message}"
                         }
                     }
-                    // Cleanup
-                    sh "docker rm -f sut_container || true"
-                    sh "docker compose -f ${COMPOSE_TEST} down"
                 }
             }
         }
@@ -53,11 +63,9 @@ pipeline {
             steps {
                 echo "Syncing workspace to ${DEPLOY_PATH}..."
                 sh "rsync -rlptvz --exclude '.git' --exclude 'tests' ${WORKSPACE}/ ${DEPLOY_PATH}/"
-                
-                script {
-                    echo "Rebuilding and restarting production containers..."
-                    sh "docker-compose -f ${DEPLOY_PATH}/${COMPOSE_PROD} --project-directory ${DEPLOY_PATH} up -d --build"
-                }
+                echo "Rebuilding and restarting production containers..."
+                sh "docker rm -f shop_api shop_redis shop_db celery celery_flower shop_locust || true"
+                sh "docker compose -f ${DEPLOY_PATH}/${COMPOSE_PROD} --project-directory ${DEPLOY_PATH} up -d --build"
             }
         }
 
@@ -65,6 +73,22 @@ pipeline {
             steps {
                 sh "docker image prune -f"
             }
+        }
+    }
+
+    post {
+        always {
+            echo "Final cleanup — removing test containers and volumes..."
+            sh '''
+                docker rm -f ${TEST_CONTAINER} || true
+                COMPOSE_PROJECT_NAME=flask-ecommerce-api-test docker compose -f ${COMPOSE_TEST} down -v || true
+            '''
+        }
+        success {
+            echo "Pipeline completed successfully."
+        }
+        failure {
+            echo "Pipeline FAILED — review logs above."
         }
     }
 }
