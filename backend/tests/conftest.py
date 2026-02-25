@@ -1,19 +1,22 @@
-import sys
 import os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+import sys
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import pytest
-from app import create_app
-from extensions import limiter
-from models import db as _db, User, Product, Category, CartItem
 from werkzeug.security import generate_password_hash
 
+from app import create_app
+from extensions import limiter
+from models import CartItem, Category, Product, User
+from models import db as _db
 
-@pytest.fixture(scope='session')
+
+@pytest.fixture(scope="session")
 def app():
     app = create_app()
-    app.config['TESTING'] = True
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config["TESTING"] = True
+    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
     with app.app_context():
         _db.create_all()

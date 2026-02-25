@@ -8,9 +8,7 @@ from models import CartItem
 
 
 def test_checkout_with_items(client, customer_token, customer_user, product, db):
-    cart_item = CartItem(
-        user_id=customer_user.id, product_id=product.id, quantity=2
-    )
+    cart_item = CartItem(user_id=customer_user.id, product_id=product.id, quantity=2)
     db.session.add(cart_item)
     db.session.commit()
 

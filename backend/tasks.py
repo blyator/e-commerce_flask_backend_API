@@ -1,6 +1,7 @@
 from celery import shared_task
-from extensions import mail
 from flask_mail import Message
+
+from extensions import mail
 
 
 @shared_task(ignore_result=True)
