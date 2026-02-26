@@ -74,10 +74,30 @@ pipeline {
             '''
         }
         success {
-            echo "Pipeline completed successfully."
+            withCredentials([
+                string(credentialsId: 'telegram-bot-token', variable: 'TG_TOKEN'),
+                string(credentialsId: 'telegram-chat-id', variable: 'TG_CHAT')
+            ]) {
+                sh """
+                    curl -s -X POST https://api.telegram.org/bot\${TG_TOKEN}/sendMessage \
+                    -d chat_id=\${TG_CHAT} \
+                    -d text="✅ *flask-ecommerce-API* pipeline succeeded%0ABranch: ${GIT_BRANCH}%0ACommit: ${GIT_COMMIT[0..7]}" \
+                    -d parse_mode=Markdown
+                """
+            }
         }
         failure {
-            echo "Pipeline FAILED — review logs above."
+            withCredentials([
+                string(credentialsId: 'telegram-bot-token', variable: 'TG_TOKEN'),
+                string(credentialsId: 'telegram-chat-id', variable: 'TG_CHAT')
+            ]) {
+                sh """
+                    curl -s -X POST https://api.telegram.org/bot\${TG_TOKEN}/sendMessage \
+                    -d chat_id=\${TG_CHAT} \
+                    -d text="❌ *flask-ecommerce-API* pipeline FAILED%0ABranch: ${GIT_BRANCH}%0ACommit: ${GIT_COMMIT[0..7]}%0ACheck: ${BUILD_URL}" \
+                    -d parse_mode=Markdown
+                """
+            }
         }
     }
 }
