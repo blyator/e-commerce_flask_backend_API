@@ -14,18 +14,7 @@ pipeline {
                 checkout scm
             }
         }
-
-        stage('Teardown Previous Run') {
-            environment { COMPOSE_PROJECT_NAME = "flask-ecommerce-api-test" }
-            steps {
-                echo "Deleting previous test containers..."
-                sh '''
-                    docker rm -f ${TEST_CONTAINER} || true
-                    docker compose -f ${COMPOSE_TEST} down -v --remove-orphans || true
-                '''
-            }
-        }
-
+        
         stage('Build & Lint') {
             environment { COMPOSE_PROJECT_NAME = "flask-ecommerce-api-test" }
             steps {
