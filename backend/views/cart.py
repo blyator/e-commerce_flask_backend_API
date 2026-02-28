@@ -1,8 +1,7 @@
 # routes/cart.py
+from extensions import cache
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
-
-from extensions import cache
 from models import CartItem, Product, db
 
 cart_bp = Blueprint("cart", __name__, url_prefix="/cart")

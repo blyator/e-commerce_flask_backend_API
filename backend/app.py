@@ -1,14 +1,13 @@
 import os
 from datetime import timedelta
 
+from celery_app import celery_init_app
 from dotenv import load_dotenv
+from extensions import cache, limiter
 from flasgger import Swagger
 from flask import Flask, jsonify
 from flask_cors import CORS
 from flask_migrate import Migrate
-
-from celery_app import celery_init_app
-from extensions import cache, limiter
 from models import TokenBlocklist, db, jwt
 from views import auth_bp, cart_bp, category_bp, order_bp, product_bp, user_bp
 from views.mailserver import email

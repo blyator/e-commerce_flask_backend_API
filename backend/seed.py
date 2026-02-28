@@ -2,10 +2,9 @@ import sys
 from datetime import datetime, timedelta
 from random import randint, sample
 
-from werkzeug.security import generate_password_hash
-
 from app import create_app
 from models import Category, Order, OrderItem, Product, User, db
+from werkzeug.security import generate_password_hash
 
 app = create_app()
 

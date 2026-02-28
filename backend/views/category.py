@@ -1,9 +1,8 @@
+from extensions import cache
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
-from sqlalchemy.orm import joinedload
-
-from extensions import cache
 from models import Category, db
+from sqlalchemy.orm import joinedload
 
 category_bp = Blueprint("category", __name__, url_prefix="/categories")
 

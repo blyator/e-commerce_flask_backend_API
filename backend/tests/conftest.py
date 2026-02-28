@@ -4,12 +4,11 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import pytest
-from werkzeug.security import generate_password_hash
-
 from app import create_app
 from extensions import limiter
 from models import CartItem, Category, Product, User
 from models import db as _db
+from werkzeug.security import generate_password_hash
 
 
 @pytest.fixture(scope="session")
