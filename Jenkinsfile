@@ -61,6 +61,7 @@ pipeline {
         stage('Cleanup') {
             steps {
                 sh "docker image prune -f"
+                sh "docker volume prune -f"
             }
         }
     }
