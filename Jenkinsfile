@@ -70,7 +70,7 @@ pipeline {
             echo "Final cleanup — removing test containers and volumes..."
             sh '''
                 docker rm -f ${TEST_CONTAINER} || true
-                COMPOSE_PROJECT_NAME=flask-ecommerce-api-test docker compose -f ${COMPOSE_TEST} down -v || true
+                COMPOSE_PROJECT_NAME=flask-ecommerce-api-test docker compose -f ${COMPOSE_TEST} down -v --rmi local || true
             '''
         }
         success {
