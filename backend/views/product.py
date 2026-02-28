@@ -1,9 +1,8 @@
+from extensions import cache, limiter
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
-from sqlalchemy.orm import joinedload
-
-from extensions import cache, limiter
 from models import Category, Product, db
+from sqlalchemy.orm import joinedload
 
 product_bp = Blueprint("product", __name__, url_prefix="/products")
 
@@ -78,8 +77,7 @@ def get_products():
     return jsonify(
         {
             "products": [p.to_dict() for p in pagination.items],
-            "total": pagination.total,
-            "pages": pagination.pages,
+            "page/per_page": f"{pagination.page}/{pagination.pages}",
             "current_page": pagination.page,
             "per_page": pagination.per_page,
             "has_next": pagination.has_next,
