@@ -1,7 +1,8 @@
 import os
 
-from extensions import mail
 from flask_mail import Message
+
+from extensions import mail
 from tasks import send_celery_email
 
 

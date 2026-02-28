@@ -4,9 +4,10 @@ from datetime import datetime
 
 from flask import Blueprint, jsonify, request
 from flask_jwt_extended import get_jwt_identity, jwt_required
-from models import CartItem, Category, Invoice, Order, OrderItem, Product, User, db
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import joinedload
+
+from models import CartItem, Category, Invoice, Order, OrderItem, Product, User, db
 from views.mailserver import send_email, send_order_confirmation_email
 
 order_bp = Blueprint("order", __name__, url_prefix="/orders")
