@@ -212,8 +212,18 @@ def seed():
                 role="admin",
             )
             db.session.add(admin_user)
+
+            # Add demo user for Locust
+            print("Adding demo user...")
+            demo_user = User(
+                username="demouser",
+                email="user@demo.com",
+                password_hash=generate_password_hash("demo1234"),
+                role="customer",
+            )
+            db.session.add(demo_user)
             db.session.commit()
-            print("Admin user created")
+            print("Admin and demo users created")
 
             # Add products
             print("Adding products...")
